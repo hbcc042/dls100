@@ -59,15 +59,6 @@
         <!-- Top teams will be displayed here as small div boxes -->
       </div>
     </div>
-
-    <!-- All Point Tables Display -->
-    <div class="bg-white shadow rounded p-4 mt-6">
-      <div class="text-xl font-semibold text-blue-700 mb-4">All Point Tables</div>
-      <div id="allpointTablesContainer" class="space-y-4">
-        <!-- All point tables will be displayed here -->
-      </div>
-    </div>
-
   </main>
 
   <script type="module">
@@ -101,7 +92,6 @@
       else {
         loadKnockouts();
         loadTopTeams(); // Load top teams only (allTeams removed)
-        loadAllPointTables(); // Load the point tables
       }
     });
 
@@ -237,65 +227,10 @@
       document.getElementById("topteamsContainer").innerHTML = topTeamsHtml;
     }
 
-    async function loadAllPointTables() {
-      const snapshot = await getDocs(collection(db, "allpointTables"));
-      const allpointTablesContainer = document.getElementById("allpointTablesContainer");
-
-      if (snapshot.empty) {
-        allpointTablesContainer.innerHTML = `<div class="text-center text-gray-500">No point tables available.</div>`;
-        return;
-      }
-
-      let allTeamsHtml = "";
-
-      snapshot.forEach(doc => {
-        const team = doc.data();
-
-        allTeamsHtml += `
-          <div class="flex justify-between text-sm text-gray-700 border p-2 rounded-md">
-            <div>${team.team}</div>
-            <div>Played: ${team.played}</div>
-            <div>Win: ${team.win}</div>
-            <div>Loss: ${team.loss}</div>
-            <div>Draw: ${team.draw}</div>
-            <div>Goals: ${team.goals}</div>
-            <div>Points: ${team.points}</div>
-          </div>
-        `;
-      });
-
-      document.getElementById("allpointTablesContainer").innerHTML = allTeamsHtml;
-    }
-
-    async function saveTopTeamsToAllPointTables() {
-      const teamElements = document.querySelectorAll("#topteamsContainer .space-y-2 .flex");
-      let teamsData = [];
-
-      teamElements.forEach((element) => {
-        const teamName = element.querySelector('div').innerText.split('.')[1].trim();
-        teamsData.push({ 
-          team: teamName, 
-          played: 0, 
-          win: 0, 
-          loss: 0, 
-          draw: 0, 
-          goals: 0, 
-          points: 0 
-        });
-      });
-
-      for (const team of teamsData) {
-        await addDoc(collection(db, "allpointTables"), team);
-      }
-
-      Swal.fire({
-        icon: 'success',
-        title: 'Top teams saved to allpointTables.',
-        position: 'top-end',
-        toast: true,
-        timer: 3000,
-        showConfirmButton: false
-      });
+    function addDays(dateStr, days) {
+      const d = new Date(dateStr);
+      d.setDate(d.getDate() + days);
+      return d.toISOString().split("T")[0];
     }
 
     document.getElementById("addFixerBtn").addEventListener("click", async () => {
@@ -346,11 +281,7 @@
         });
       }
 
-      // Save top teams to allpointTables
-      await saveTopTeamsToAllPointTables();
-
       loadKnockouts();
-      loadAllPointTables();  // Load the allpointTables after saving top teams
     });
 
     document.getElementById("deleteAllBtn").addEventListener("click", async () => {
@@ -372,7 +303,6 @@
       Swal.fire({ icon: 'success', title: 'All match fixers deleted.', position: 'top-end', toast: true, timer: 3000, showConfirmButton: false });
 
       loadKnockouts();
-      loadAllPointTables();
     });
   </script>
 
