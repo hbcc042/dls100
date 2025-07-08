@@ -114,6 +114,18 @@
         const g2 = data.team2Goal;
         let status = (typeof g1 === 'number' && typeof g2 === 'number') ? "Finished" : "Pending";
 
+        // If the match has finished, we update the winner
+        if (status === "Finished") {
+          let winner = "None";
+          if (g1 > g2) winner = data.team1;
+          else if (g2 > g1) winner = data.team2;
+          else winner = "Draw";
+          
+          // Update winner in Firestore
+          await updateDoc(docRef, { winner: winner });
+          data.winner = winner;
+        }
+
         if (data.status !== status) {
           await updateDoc(docRef, { status });
           data.status = status;
@@ -139,12 +151,7 @@
 
         matches.forEach((match, idx) => {
           let displayDate = baseDate ? addDays(baseDate, idx) : match.date;
-          let winner = "None";
-          if (typeof match.team1Goal === "number" && typeof match.team2Goal === "number") {
-            if (match.team1Goal > match.team2Goal) winner = match.team1;
-            else if (match.team2Goal > match.team1Goal) winner = match.team2;
-            else winner = "Draw";
-          }
+          let winner = match.winner || "None"; // Show winner from database
 
           html += `
             <div class="border p-2 rounded shadow-sm text-xs space-y-1 bg-white mb-1">
