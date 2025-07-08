@@ -238,7 +238,7 @@
       const allPointTablesContainer = document.getElementById("allpointtablesContainer");
 
       if (snapshot.empty) {
-        allPointTablesContainer.innerHTML = `<p class="text-gray-500 text-center">No point tables found.</p>`;
+        allPointTablesContainer.innerHTML = `<p class="text-gray-500 text-center">Loading all point tables...</p>`;
         return;
       }
 
@@ -265,6 +265,33 @@
 
       allPointTablesContainer.innerHTML = pointTablesHtml;
     }
+
+    async function autoSavePointTable() {
+      const pointTablesSnapshot = await getDocs(collection(db, "pointTables"));
+      const pointTables = [];
+
+      pointTablesSnapshot.forEach(doc => {
+        const data = doc.data();
+        pointTables.push(data);
+      });
+
+      // Save to the new "allpointTables" collection
+      for (const pointTable of pointTables) {
+        await addDoc(collection(db, "allpointTables"), {
+          serial: pointTable.serial,
+          team: pointTable.team,
+          played: pointTable.played,
+          win: pointTable.win,
+          loss: pointTable.loss,
+          draw: pointTable.draw,
+          goal: pointTable.goal,
+          points: pointTable.points,
+        });
+      }
+    }
+
+    // Call autoSavePointTable every time the page is loaded or data is modified
+    autoSavePointTable();
 
     function addDays(dateStr, days) {
       const d = new Date(dateStr);
