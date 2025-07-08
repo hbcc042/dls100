@@ -68,125 +68,126 @@
     </div>
   </main>
   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-    import {
-      getFirestore,
-      collection,
-      getDocs,
-      addDoc,
-      deleteDoc,
-      updateDoc,
-      doc
-    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import {
+    getFirestore,
+    collection,
+    getDocs,
+    addDoc,
+    deleteDoc,
+    updateDoc,
+    doc
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDooTNeDHoWUU9nLxYxyBIhewydt7Xl_M0",
-      authDomain: "dlstournament-31ac1.firebaseapp.com",
-      projectId: "dlstournament-31ac1",
-      storageBucket: "dlstournament-31ac1.appspot.com",
-      messagingSenderId: "874377019055",
-      appId: "1:874377019055:web:6e38db2ec7f0d541d2de5a",
-    };
+  const firebaseConfig = {
+    apiKey: "AIzaSyDooTNeDHoWUU9nLxYxyBIhewydt7Xl_M0",
+    authDomain: "dlstournament-31ac1.firebaseapp.com",
+    projectId: "dlstournament-31ac1",
+    storageBucket: "dlstournament-31ac1.appspot.com",
+    messagingSenderId: "874377019055",
+    appId: "1:874377019055:web:6e38db2ec7f0d541d2de5a",
+  };
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
 
-    let teamList = [];
+  let teamList = [];
 
-    onAuthStateChanged(auth, (user) => {
-      if (!user) window.location.href = "login.html";
-      else {
-        loadTeams();
-        loadFixers();
-        loadPointTables();
+  onAuthStateChanged(auth, (user) => {
+    if (!user) window.location.href = "login.html";
+    else {
+      loadTeams();
+      loadFixers();
+      loadPointTables();
+    }
+  });
+
+  async function loadTeams() {
+    const snapshot = await getDocs(collection(db, "playersform"));
+    const teams = new Set();
+    snapshot.forEach(doc => {
+      const data = doc.data();
+      if (data.team) teams.add(data.team);
+    });
+    teamList = Array.from(teams);
+    document.getElementById("teamSelector").innerHTML = teamList.map(t => `<option value="${t}">${t}</option>`).join("");
+  }
+
+  function addDays(dateStr, days) {
+    const d = new Date(dateStr);
+    d.setDate(d.getDate() + days);
+    return d.toISOString().split("T")[0];
+  }
+
+  async function loadFixers() {
+    const snapshot = await getDocs(collection(db, "fixers"));
+    const fixersContainer = document.getElementById("fixersContainer");
+
+    if (snapshot.empty) {
+      fixersContainer.innerHTML = `<p class="text-gray-500 text-center">No fixers found.</p>`;
+      return;
+    }
+
+    const fixers = [];
+    let groupIndex = 0;
+
+    for (const docSnap of snapshot.docs) {
+      const data = docSnap.data();
+      const docRef = doc(db, "fixers", docSnap.id);
+
+      const g1 = data.team1Goal;
+      const g2 = data.team2Goal;
+      let status = (typeof g1 === 'number' && typeof g2 === 'number') ? "Finished" : "Pending";
+
+      if (data.status !== status) {
+        await updateDoc(docRef, { status });
+        data.status = status;
       }
+
+      if (status === "Finished" && !data.pointsUpdated) {
+        const team1Points = g1 > g2 ? 3 : (g1 === g2 ? 1 : 0);
+        const team2Points = g2 > g1 ? 3 : (g1 === g2 ? 1 : 0);
+
+        await updatePointsInFirestore(data.team1, team1Points, g1, g2);
+        await updatePointsInFirestore(data.team2, team2Points, g2, g1);
+
+        await updateDoc(docRef, { pointsUpdated: true });
+      }
+
+      fixers.push(data);
+    }
+
+    const fixersByDate = {};
+    fixers.forEach(fix => {
+      const key = fix.date;
+      if (!fixersByDate[key]) fixersByDate[key] = [];
+      fixersByDate[key].push(fix);
     });
 
-    async function loadTeams() {
-      const snapshot = await getDocs(collection(db, "playersform"));
-      const teams = new Set();
-      snapshot.forEach(doc => {
-        const data = doc.data();
-        if (data.team) teams.add(data.team);
-      });
-      teamList = Array.from(teams);
-      document.getElementById("teamSelector").innerHTML = teamList.map(t => `<option value="${t}">${t}</option>`).join("");
-    }
+    const sortedDates = Object.keys(fixersByDate).sort();
+    const baseDate = sortedDates.length > 0 ? sortedDates[0] : null;
 
-    function addDays(dateStr, days) {
-      const d = new Date(dateStr);
-      d.setDate(d.getDate() + days);
-      return d.toISOString().split("T")[0];
-    }
+    let html = "";
+    groupIndex = 0;
 
-    async function loadFixers() {
-      const snapshot = await getDocs(collection(db, "fixers"));
-      const fixersContainer = document.getElementById("fixersContainer");
+    sortedDates.forEach(date => {
+      const groupName = `Group ${String.fromCharCode(65 + groupIndex)}`;
+      html += `<div class="bg-gray-100 px-3 py-2 rounded font-semibold text-gray-700 mb-2">${groupName}</div>`;
+      const matches = fixersByDate[date].sort((a, b) => a.team1.localeCompare(b.team1));
 
-      if (snapshot.empty) {
-        fixersContainer.innerHTML = `<p class="text-gray-500 text-center">No fixers found.</p>`;
-        return;
-      }
-
-      const fixers = [];
-      let groupIndex = 0;
-
-      for (const docSnap of snapshot.docs) {
-        const data = docSnap.data();
-        const docRef = doc(db, "fixers", docSnap.id);
-
-        const g1 = data.team1Goal;
-        const g2 = data.team2Goal;
-        let status = (typeof g1 === 'number' && typeof g2 === 'number') ? "Finished" : "Pending";
-
-        if (data.status !== status) {
-          await updateDoc(docRef, { status });
-          data.status = status;
+      matches.forEach((match, idx) => {
+        let displayDate = baseDate ? addDays(baseDate, idx) : match.date;
+        let winner = "None";
+        if (typeof match.team1Goal === "number" && typeof match.team2Goal === "number") {
+          if (match.team1Goal > match.team2Goal) winner = match.team1;
+          else if (match.team2Goal > match.team1Goal) winner = match.team2;
+          else winner = "Draw";
         }
 
-        if (status === "Finished" && !data.pointsUpdated) {
-          const team1Points = g1 > g2 ? 3 : (g1 === g2 ? 1 : 0);
-          const team2Points = g2 > g1 ? 3 : (g1 === g2 ? 1 : 0);
-
-          await updatePointsInFirestore(data.team1, team1Points, g1, g2);
-          await updatePointsInFirestore(data.team2, team2Points, g2, g1);
-
-          // Set the winner field
-          const winner = g1 > g2 ? data.team1 : (g2 > g1 ? data.team2 : "Draw");
-          await updateDoc(docRef, { winner });
-
-          await updateDoc(docRef, { pointsUpdated: true });
-        }
-
-        fixers.push(data);
-      }
-
-      const fixersByDate = {};
-      fixers.forEach(fix => {
-        const key = fix.date;
-        if (!fixersByDate[key]) fixersByDate[key] = [];
-        fixersByDate[key].push(fix);
-      });
-
-      const sortedDates = Object.keys(fixersByDate).sort();
-      const baseDate = sortedDates.length > 0 ? sortedDates[0] : null;
-
-      let html = "";
-      groupIndex = 0;
-
-      sortedDates.forEach(date => {
-        const groupName = `Group ${String.fromCharCode(65 + groupIndex)}`;
-        html += `<div class="bg-gray-100 px-3 py-2 rounded font-semibold text-gray-700 mb-2">${groupName}</div>`;
-        const matches = fixersByDate[date].sort((a, b) => a.team1.localeCompare(b.team1));
-
-        matches.forEach((match, idx) => {
-          let displayDate = baseDate ? addDays(baseDate, idx) : match.date;
-          let winner = match.winner || "None";  // Get winner from firestore field
-
-          html += `
-            <div class="border p-2 rounded shadow-sm text-xs space-y-1 bg-white mb-1">
+        html += `
+          <div class="border p-2 rounded shadow-sm text-xs space-y-1 bg-white mb-1">
               <div class="text-center text-[13px] text-gray-500 font-semibold">${displayDate}</div>
               <div class="flex justify-between items-center px-2">
                 <div class="text-sm font-semibold text-gray-600">${match.team1} <span class="text-black">(${match.team1Goal ?? "-"})</span></div>
@@ -195,49 +196,49 @@
               </div>
               <div class="text-center text-green-600 text-xs font-medium">Winner: ${winner}</div>
               <div class="text-center text-blue-600 text-xs font-medium">Status: ${match.status}</div>
-            </div>`;
-        });
-
-        groupIndex++;
+          </div>`;
       });
 
-      fixersContainer.innerHTML = html;
+      groupIndex++;
+    });
+
+    fixersContainer.innerHTML = html;
+  }
+
+  async function loadPointTables() {
+    const snapshot = await getDocs(collection(db, "pointTables"));
+    const pointTablesContainer = document.getElementById("pointTablesContainer");
+
+    if (snapshot.empty) {
+      pointTablesContainer.innerHTML = `<p class="text-gray-500 text-center">No point tables to show.</p>`;
+      return;
     }
 
-    async function loadPointTables() {
-      const snapshot = await getDocs(collection(db, "pointTables"));
-      const pointTablesContainer = document.getElementById("pointTablesContainer");
+    const pointTables = [];
+    snapshot.forEach(doc => pointTables.push(doc.data()));
 
-      if (snapshot.empty) {
-        pointTablesContainer.innerHTML = `<p class="text-gray-500 text-center">No point tables to show.</p>`;
-        return;
-      }
+    let allPointsHTML = "";
+    pointTables.sort((a, b) => {
+      const groupA = a.groupName || '';
+      const groupB = b.groupName || '';
+      return groupA.localeCompare(groupB);
+    });
 
-      const pointTables = [];
-      snapshot.forEach(doc => pointTables.push(doc.data()));
+    if (pointTables.length === 0) {
+      allPointsHTML = `<p class="text-gray-500 text-center">No point tables to show.</p>`;
+    } else {
+      allPointsHTML = pointTables.map((pointTable, index) => {
+        const groupNameFromFirestore = pointTable.groupName || `Group ${String.fromCharCode(65 + index)}`;
 
-      let allPointsHTML = "";
-      pointTables.sort((a, b) => {
-        const groupA = a.groupName || '';
-        const groupB = b.groupName || '';
-        return groupA.localeCompare(groupB);
-      });
+        pointTable.teams.sort((a, b) => {
+          if (b.points === a.points) {
+            return b.goals - a.goals;
+          }
+          return b.points - a.points;
+        });
 
-      if (pointTables.length === 0) {
-        allPointsHTML = `<p class="text-gray-500 text-center">No point tables to show.</p>`;
-      } else {
-        allPointsHTML = pointTables.map((pointTable, index) => {
-          const groupNameFromFirestore = pointTable.groupName || `Group ${String.fromCharCode(65 + index)}`;
-
-          pointTable.teams.sort((a, b) => {
-            if (b.points === a.points) {
-              return b.goals - a.goals;
-            }
-            return b.points - a.points;
-          });
-
-          return `
-            <div class="mb-4">
+        return `
+          <div class="mb-4">
               <div class="font-semibold mb-1 text-blue-700">Point Table - ${groupNameFromFirestore}</div>
               <table class="text-sm w-full table-auto border border-gray-200">
                 <thead>
@@ -267,153 +268,152 @@
                   `).join('')}
                 </tbody>
               </table>
-            </div>
-          `;
-        }).join('');
-      }
-
-      pointTablesContainer.innerHTML = allPointsHTML;
+          </div>
+        `;
+      }).join('');
     }
 
-    async function updatePointsInFirestore(team, points, goalsFor, goalsAgainst) {
-      const snapshot = await getDocs(collection(db, "pointTables"));
-      let teamUpdated = false;
+    pointTablesContainer.innerHTML = allPointsHTML;
+  }
 
-      for (const docSnap of snapshot.docs) {
-        const data = docSnap.data();
-        const groupTeams = data.teams;
+  async function updatePointsInFirestore(team, points, goalsFor, goalsAgainst) {
+    const snapshot = await getDocs(collection(db, "pointTables"));
+    let teamUpdated = false;
 
-        for (let i = 0; i < groupTeams.length; i++) {
-          if (groupTeams[i].team === team) {
-            groupTeams[i].points += points;
-            groupTeams[i].played += 1;
-            groupTeams[i].goals += goalsFor;
+    for (const docSnap of snapshot.docs) {
+      const data = docSnap.data();
+      const groupTeams = data.teams;
 
-            if (points === 3) {
-              groupTeams[i].win += 1;
-            } else if (points === 1) {
-              groupTeams[i].draw += 1;
-            } else {
-              groupTeams[i].loss += 1;
-            }
+      for (let i = 0; i < groupTeams.length; i++) {
+        if (groupTeams[i].team === team) {
+          groupTeams[i].points += points;
+          groupTeams[i].played += 1;
+          groupTeams[i].goals += goalsFor;
 
-            await updateDoc(doc(db, "pointTables", docSnap.id), { teams: groupTeams });
-            teamUpdated = true;
-            break;
+          if (points === 3) {
+            groupTeams[i].win += 1;
+          } else if (points === 1) {
+            groupTeams[i].draw += 1;
+          } else {
+            groupTeams[i].loss += 1;
           }
+
+          await updateDoc(doc(db, "pointTables", docSnap.id), { teams: groupTeams });
+          teamUpdated = true;
+          break;
         }
-
-        if (teamUpdated) break;
       }
 
-      if (!teamUpdated) {
-        console.log(`Team ${team} not found in point table`);
-      }
+      if (teamUpdated) break;
     }
 
-    document.getElementById("addFixerBtn").addEventListener("click", async () => {
-      const selectedTeams = Array.from(document.getElementById("teamSelector").selectedOptions).map(opt => opt.value);
-      const baseDate = document.getElementById("fixerDate").value;
-      const groupCount = parseInt(document.getElementById("groupCount").value);
+    if (!teamUpdated) {
+      console.log(`Team ${team} not found in point table`);
+    }
+  }
 
-      if (selectedTeams.length < 2 || !baseDate || isNaN(groupCount)) {
-        Swal.fire({ icon: 'warning', title: 'Please fill out all fields.', position: 'top-end', toast: true, timer: 3000, showConfirmButton: false });
-        return;
-      }
+  document.getElementById("addFixerBtn").addEventListener("click", async () => {
+    const selectedTeams = Array.from(document.getElementById("teamSelector").selectedOptions).map(opt => opt.value);
+    const baseDate = document.getElementById("fixerDate").value;
+    const groupCount = parseInt(document.getElementById("groupCount").value);
 
-      if (selectedTeams.length !== groupCount * 4) {
-        Swal.fire({ icon: 'error', title: `Select ${groupCount * 4} teams.`, position: 'top-end', toast: true, timer: 4000, showConfirmButton: false });
-        return;
-      }
-
-      const start = new Date(baseDate);
-      let added = 0;
-
-      for (let g = 0; g < groupCount; g++) {
-        const groupTeams = selectedTeams.slice(g * 4, (g + 1) * 4);
-        const matchDate = new Date(start);
-        matchDate.setDate(start.getDate() + g);
-        const dateStr = matchDate.toISOString().split("T")[0];
-        const groupName = `Group ${String.fromCharCode(65 + g)}`;
-
-        for (let i = 0; i < groupTeams.length; i++) {
-          for (let j = i + 1; j < groupTeams.length; j++) {
-            await addDoc(collection(db, "fixers"), {
-              team1: groupTeams[i],
-              team2: groupTeams[j],
-              date: dateStr,
-              team1Goal: null,
-              team2Goal: null,
-              status: "Pending",
-              groupName: groupName,
-              winner: null // Added winner field
-            });
-            added++;
-          }
-        }
-
-        await savePointTable(groupName, groupTeams.map(team => ({
-          team,
-          played: 0,
-          win: 0,
-          loss: 0,
-          draw: 0,
-          goals: 0,
-          points: 0
-        })));
-      }
-
-      Swal.fire({ icon: 'success', title: `${added} matches added.`, position: 'top-end', toast: true, timer: 3000, showConfirmButton: false });
-      loadFixers();
-    });
-
-    async function savePointTable(groupName, teams) {
-      await addDoc(collection(db, "pointTables"), {
-        groupName,
-        teams: teams.map(t => ({
-          team: t.team,
-          played: t.played,
-          win: t.win,
-          loss: t.loss,
-          draw: t.draw,
-          goals: t.goals,
-          points: t.points
-        })),
-      });
-      console.log("Point table for " + groupName + " saved successfully.");
+    if (selectedTeams.length < 2 || !baseDate || isNaN(groupCount)) {
+      Swal.fire({ icon: 'warning', title: 'Please fill out all fields.', position: 'top-end', toast: true, timer: 3000, showConfirmButton: false });
+      return;
     }
 
-    document.getElementById("selectAllTeams").addEventListener("change", (e) => {
-      const options = document.getElementById("teamSelector").options;
-      for (let option of options) option.selected = e.target.checked;
+    if (selectedTeams.length !== groupCount * 4) {
+      Swal.fire({ icon: 'error', title: `Select ${groupCount * 4} teams.`, position: 'top-end', toast: true, timer: 4000, showConfirmButton: false });
+      return;
+    }
+
+    const start = new Date(baseDate);
+    let added = 0;
+
+    for (let g = 0; g < groupCount; g++) {
+      const groupTeams = selectedTeams.slice(g * 4, (g + 1) * 4);
+      const matchDate = new Date(start);
+      matchDate.setDate(start.getDate() + g);
+      const dateStr = matchDate.toISOString().split("T")[0];
+      const groupName = `Group ${String.fromCharCode(65 + g)}`;
+
+      for (let i = 0; i < groupTeams.length; i++) {
+        for (let j = i + 1; j < groupTeams.length; j++) {
+          await addDoc(collection(db, "fixers"), {
+            team1: groupTeams[i],
+            team2: groupTeams[j],
+            date: dateStr,
+            team1Goal: null,
+            team2Goal: null,
+            status: "Pending",
+            groupName: groupName
+          });
+          added++;
+        }
+      }
+
+      await savePointTable(groupName, groupTeams.map(team => ({
+        team,
+        played: 0,
+        win: 0,
+        loss: 0,
+        draw: 0,
+        goals: 0,
+        points: 0
+      })));
+    }
+
+    Swal.fire({ icon: 'success', title: `${added} matches added.`, position: 'top-end', toast: true, timer: 3000, showConfirmButton: false });
+    loadFixers();
+  });
+
+  async function savePointTable(groupName, teams) {
+    await addDoc(collection(db, "pointTables"), {
+      groupName,
+      teams: teams.map(t => ({
+        team: t.team,
+        played: t.played,
+        win: t.win,
+        loss: t.loss,
+        draw: t.draw,
+        goals: t.goals,
+        points: t.points
+      })),
+    });
+    console.log("Point table for " + groupName + " saved successfully.");
+  }
+
+  document.getElementById("selectAllTeams").addEventListener("change", (e) => {
+    const options = document.getElementById("teamSelector").options;
+    for (let option of options) option.selected = e.target.checked;
+  });
+
+  // Updated deleteAllBtn click handler
+  document.getElementById("deleteAllBtn").addEventListener("click", async () => {
+    const confirm = await Swal.fire({
+      title: 'Are you sure?',
+      text: "All matches will be deleted!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete all!',
     });
 
-    // Updated deleteAllBtn click handler
-    document.getElementById("deleteAllBtn").addEventListener("click", async () => {
-      const confirm = await Swal.fire({
-        title: 'Are you sure?',
-        text: "All matches will be deleted!",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, delete all!',
-      });
+    if (!confirm.isConfirmed) return;
 
-      if (!confirm.isConfirmed) return;
+    const snapshotFixers = await getDocs(collection(db, "fixers"));
+    const deletionsFixers = snapshotFixers.docs.map(docSnap => deleteDoc(doc(db, "fixers", docSnap.id)));
+    await Promise.all(deletionsFixers);
 
-      const snapshotFixers = await getDocs(collection(db, "fixers"));
-      const deletionsFixers = snapshotFixers.docs.map(docSnap => deleteDoc(doc(db, "fixers", docSnap.id)));
-      await Promise.all(deletionsFixers);
+    // Also delete the related point tables
+    const snapshotPointTables = await getDocs(collection(db, "pointTables"));
+    const deletionsPointTables = snapshotPointTables.docs.map(docSnap => deleteDoc(doc(db, "pointTables", docSnap.id)));
+    await Promise.all(deletionsPointTables);
 
-      // Also delete the related point tables
-      const snapshotPointTables = await getDocs(collection(db, "pointTables"));
-      const deletionsPointTables = snapshotPointTables.docs.map(docSnap => deleteDoc(doc(db, "pointTables", docSnap.id)));
-      await Promise.all(deletionsPointTables);
-
-      Swal.fire({ icon: 'success', title: 'All fixers and point tables deleted.', position: 'top-end', toast: true, timer: 3000, showConfirmButton: false });
-      loadFixers();
-      loadPointTables();
-    });
-  </script>
+    Swal.fire({ icon: 'success', title: 'All fixers and point tables deleted.', position: 'top-end', toast: true, timer: 3000, showConfirmButton: false });
+    loadFixers();
+    loadPointTables();
+  });
+</script>
 
 </body>
 </html>
