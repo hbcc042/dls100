@@ -77,8 +77,7 @@
     addDoc,
     deleteDoc,
     updateDoc,
-    doc,
-    onSnapshot
+    doc
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -123,89 +122,158 @@
   }
 
   async function loadFixers() {
+    const snapshot = await getDocs(collection(db, "fixers"));
     const fixersContainer = document.getElementById("fixersContainer");
 
-    // Real-time listener to listen to changes in fixers collection
-    onSnapshot(collection(db, "fixers"), async (snapshot) => {
-      const fixers = [];
-      let groupIndex = 0;
+    if (snapshot.empty) {
+      fixersContainer.innerHTML = `<p class="text-gray-500 text-center">No fixers found.</p>`;
+      return;
+    }
 
-      if (snapshot.empty) {
-        fixersContainer.innerHTML = `<p class="text-gray-500 text-center">No fixers found.</p>`;
-        return;
+    const fixers = [];
+    let groupIndex = 0;
+
+    for (const docSnap of snapshot.docs) {
+      const data = docSnap.data();
+      const docRef = doc(db, "fixers", docSnap.id);
+
+      const g1 = data.team1Goal;
+      const g2 = data.team2Goal;
+      let status = (typeof g1 === 'number' && typeof g2 === 'number') ? "Finished" : "Pending";
+
+      if (data.status !== status) {
+        await updateDoc(docRef, { status });
+        data.status = status;
       }
 
-      for (const docSnap of snapshot.docs) {
-        const data = docSnap.data();
-        const docRef = doc(db, "fixers", docSnap.id);
+      if (status === "Finished" && !data.pointsUpdated) {
+        const team1Points = g1 > g2 ? 3 : (g1 === g2 ? 1 : 0);
+        const team2Points = g2 > g1 ? 3 : (g1 === g2 ? 1 : 0);
 
-        const g1 = data.team1Goal;
-        const g2 = data.team2Goal;
-        let status = (typeof g1 === 'number' && typeof g2 === 'number') ? "Finished" : "Pending";
+        await updatePointsInFirestore(data.team1, team1Points, g1, g2);
+        await updatePointsInFirestore(data.team2, team2Points, g2, g1);
 
-        if (data.status !== status) {
-          await updateDoc(docRef, { status });
-          data.status = status;
-        }
-
-        if (status === "Finished" && !data.pointsUpdated) {
-          const team1Points = g1 > g2 ? 3 : (g1 === g2 ? 1 : 0);
-          const team2Points = g2 > g1 ? 3 : (g1 === g2 ? 1 : 0);
-
-          await updatePointsInFirestore(data.team1, team1Points, g1, g2);
-          await updatePointsInFirestore(data.team2, team2Points, g2, g1);
-
-          await updateDoc(docRef, { pointsUpdated: true });
-        }
-
-        fixers.push(data);
+        await updateDoc(docRef, { pointsUpdated: true });
       }
 
-      const fixersByDate = {};
-      fixers.forEach(fix => {
-        const key = fix.date;
-        if (!fixersByDate[key]) fixersByDate[key] = [];
-        fixersByDate[key].push(fix);
+      fixers.push(data);
+    }
+
+    const fixersByDate = {};
+    fixers.forEach(fix => {
+      const key = fix.date;
+      if (!fixersByDate[key]) fixersByDate[key] = [];
+      fixersByDate[key].push(fix);
+    });
+
+    const sortedDates = Object.keys(fixersByDate).sort();
+    const baseDate = sortedDates.length > 0 ? sortedDates[0] : null;
+
+    let html = "";
+    groupIndex = 0;
+
+    sortedDates.forEach(date => {
+      const groupName = `Group ${String.fromCharCode(65 + groupIndex)}`;
+      html += `<div class="bg-gray-100 px-3 py-2 rounded font-semibold text-gray-700 mb-2">${groupName}</div>`;
+      const matches = fixersByDate[date].sort((a, b) => a.team1.localeCompare(b.team1));
+
+      matches.forEach((match, idx) => {
+        let displayDate = baseDate ? addDays(baseDate, idx) : match.date;
+        let winner = "None";
+        if (typeof match.team1Goal === "number" && typeof match.team2Goal === "number") {
+          if (match.team1Goal > match.team2Goal) winner = match.team1;
+          else if (match.team2Goal > match.team1Goal) winner = match.team2;
+          else winner = "Draw";
+        }
+
+        html += `
+          <div class="border p-2 rounded shadow-sm text-xs space-y-1 bg-white mb-1">
+              <div class="text-center text-[13px] text-gray-500 font-semibold">${displayDate}</div>
+              <div class="flex justify-between items-center px-2">
+                <div class="text-sm font-semibold text-gray-600">${match.team1} <span class="text-black">(${match.team1Goal ?? "-"})</span></div>
+                <div class="text-base font-bold text-red-500">VS</div>
+                <div class="text-sm font-semibold text-gray-600">${match.team2} <span class="text-black">(${match.team2Goal ?? "-"})</span></div>
+              </div>
+              <div class="text-center text-green-600 text-xs font-medium">Winner: ${winner}</div>
+              <div class="text-center text-blue-600 text-xs font-medium">Status: ${match.status}</div>
+          </div>`;
       });
 
-      const sortedDates = Object.keys(fixersByDate).sort();
-      const baseDate = sortedDates.length > 0 ? sortedDates[0] : null;
+      groupIndex++;
+    });
 
-      let html = "";
-      groupIndex = 0;
+    fixersContainer.innerHTML = html;
+  }
 
-      sortedDates.forEach(date => {
-        const groupName = `Group ${String.fromCharCode(65 + groupIndex)}`;
-        html += `<div class="bg-gray-100 px-3 py-2 rounded font-semibold text-gray-700 mb-2">${groupName}</div>`;
-        const matches = fixersByDate[date].sort((a, b) => a.team1.localeCompare(b.team1));
+  async function loadPointTables() {
+    const snapshot = await getDocs(collection(db, "pointTables"));
+    const pointTablesContainer = document.getElementById("pointTablesContainer");
 
-        matches.forEach((match, idx) => {
-          let displayDate = baseDate ? addDays(baseDate, idx) : match.date;
-          let winner = "None";
-          if (typeof match.team1Goal === "number" && typeof match.team2Goal === "number") {
-            if (match.team1Goal > match.team2Goal) winner = match.team1;
-            else if (match.team2Goal > match.team1Goal) winner = match.team2;
-            else winner = "Draw";
+    if (snapshot.empty) {
+      pointTablesContainer.innerHTML = `<p class="text-gray-500 text-center">No point tables to show.</p>`;
+      return;
+    }
+
+    const pointTables = [];
+    snapshot.forEach(doc => pointTables.push(doc.data()));
+
+    let allPointsHTML = "";
+    pointTables.sort((a, b) => {
+      const groupA = a.groupName || '';
+      const groupB = b.groupName || '';
+      return groupA.localeCompare(groupB);
+    });
+
+    if (pointTables.length === 0) {
+      allPointsHTML = `<p class="text-gray-500 text-center">No point tables to show.</p>`;
+    } else {
+      allPointsHTML = pointTables.map((pointTable, index) => {
+        const groupNameFromFirestore = pointTable.groupName || `Group ${String.fromCharCode(65 + index)}`;
+
+        pointTable.teams.sort((a, b) => {
+          if (b.points === a.points) {
+            return b.goals - a.goals;
           }
-
-          html += `
-            <div class="border p-2 rounded shadow-sm text-xs space-y-1 bg-white mb-1">
-                <div class="text-center text-[13px] text-gray-500 font-semibold">${displayDate}</div>
-                <div class="flex justify-between items-center px-2">
-                  <div class="text-sm font-semibold text-gray-600">${match.team1} <span class="text-black">(${match.team1Goal ?? "-"})</span></div>
-                  <div class="text-base font-bold text-red-500">VS</div>
-                  <div class="text-sm font-semibold text-gray-600">${match.team2} <span class="text-black">(${match.team2Goal ?? "-"})</span></div>
-                </div>
-                <div class="text-center text-green-600 text-xs font-medium">Winner: ${winner}</div>
-                <div class="text-center text-blue-600 text-xs font-medium">Status: ${match.status}</div>
-            </div>`;
+          return b.points - a.points;
         });
 
-        groupIndex++;
-      });
+        return `
+          <div class="mb-4">
+              <div class="font-semibold mb-1 text-blue-700">Point Table - ${groupNameFromFirestore}</div>
+              <table class="text-sm w-full table-auto border border-gray-200">
+                <thead>
+                  <tr class="bg-gray-200">
+                    <th class="px-2 py-1 border">#</th>
+                    <th class="px-2 py-1 border">Team</th>
+                    <th class="px-2 py-1 border text-center">Played</th>
+                    <th class="px-2 py-1 border text-center">Win</th>
+                    <th class="px-2 py-1 border text-center">Loss</th>
+                    <th class="px-2 py-1 border text-center">Draw</th>
+                    <th class="px-2 py-1 border text-center">Goals</th>
+                    <th class="px-2 py-1 border text-center">Points</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${pointTable.teams.map((team, i) => `
+                    <tr>
+                      <td class="px-2 py-1 border text-center">${i + 1}</td>
+                      <td class="px-2 py-1 border">${team.team}</td>
+                      <td class="px-2 py-1 border text-center font-semibold">${team.played}</td>
+                      <td class="px-2 py-1 border text-center">${team.win}</td>
+                      <td class="px-2 py-1 border text-center">${team.loss}</td>
+                      <td class="px-2 py-1 border text-center">${team.draw}</td>
+                      <td class="px-2 py-1 border text-center font-semibold">${team.goals}</td>
+                      <td class="px-2 py-1 border text-center font-bold">${team.points}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+          </div>
+        `;
+      }).join('');
+    }
 
-      fixersContainer.innerHTML = html;
-    });
+    pointTablesContainer.innerHTML = allPointsHTML;
   }
 
   async function updatePointsInFirestore(team, points, goalsFor, goalsAgainst) {
