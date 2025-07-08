@@ -96,8 +96,8 @@
       if (!user) window.location.href = "login.html";
       else {
         loadKnockouts();
-        loadTopTeams(); // Load top teams only (allTeams removed)
-        loadAllPointTables(); // Load all point tables
+        loadTopTeams(); 
+        loadAllPointTables();
       }
     });
 
@@ -238,60 +238,48 @@
       const allPointTablesContainer = document.getElementById("allpointtablesContainer");
 
       if (snapshot.empty) {
-        allPointTablesContainer.innerHTML = `<p class="text-gray-500 text-center">Loading all point tables...</p>`;
+        allPointTablesContainer.innerHTML = `<p class="text-gray-500 text-center">No point tables found.</p>`;
         return;
       }
 
-      let pointTablesHtml = "";
+      let pointTablesHtml = `
+        <table class="min-w-full border-collapse table-auto">
+          <thead>
+            <tr class="bg-gray-200">
+              <th class="px-4 py-2 border">Serial</th>
+              <th class="px-4 py-2 border">Team</th>
+              <th class="px-4 py-2 border">Played</th>
+              <th class="px-4 py-2 border">Win</th>
+              <th class="px-4 py-2 border">Loss</th>
+              <th class="px-4 py-2 border">Draw</th>
+              <th class="px-4 py-2 border">Goals</th>
+              <th class="px-4 py-2 border">Points</th>
+            </tr>
+          </thead>
+          <tbody>
+      `;
 
       snapshot.forEach(doc => {
         const pointTable = doc.data();
 
         pointTablesHtml += `
-          <div class="border p-4 rounded-lg shadow-md bg-white mb-4">
-            <div class="text-lg font-semibold text-gray-700">${pointTable.team}</div>
-            <div class="text-sm text-gray-500">Serial: ${pointTable.serial}</div>
-            <div class="flex justify-between text-sm text-gray-700">
-              <div>Played: ${pointTable.played}</div>
-              <div>Win: ${pointTable.win}</div>
-              <div>Loss: ${pointTable.loss}</div>
-              <div>Draw: ${pointTable.draw}</div>
-              <div>Goals: ${pointTable.goal}</div>
-              <div>Points: ${pointTable.points}</div>
-            </div>
-          </div>
+          <tr class="text-center">
+            <td class="px-4 py-2 border">${pointTable.serial}</td>
+            <td class="px-4 py-2 border">${pointTable.team}</td>
+            <td class="px-4 py-2 border">${pointTable.played}</td>
+            <td class="px-4 py-2 border">${pointTable.win}</td>
+            <td class="px-4 py-2 border">${pointTable.loss}</td>
+            <td class="px-4 py-2 border">${pointTable.draw}</td>
+            <td class="px-4 py-2 border">${pointTable.goal}</td>
+            <td class="px-4 py-2 border">${pointTable.points}</td>
+          </tr>
         `;
       });
 
+      pointTablesHtml += `</tbody></table>`;
+
       allPointTablesContainer.innerHTML = pointTablesHtml;
     }
-
-    async function autoSavePointTable() {
-      const pointTablesSnapshot = await getDocs(collection(db, "pointTables"));
-      const pointTables = [];
-
-      pointTablesSnapshot.forEach(doc => {
-        const data = doc.data();
-        pointTables.push(data);
-      });
-
-      // Save to the new "allpointTables" collection
-      for (const pointTable of pointTables) {
-        await addDoc(collection(db, "allpointTables"), {
-          serial: pointTable.serial,
-          team: pointTable.team,
-          played: pointTable.played,
-          win: pointTable.win,
-          loss: pointTable.loss,
-          draw: pointTable.draw,
-          goal: pointTable.goal,
-          points: pointTable.points,
-        });
-      }
-    }
-
-    // Call autoSavePointTable every time the page is loaded or data is modified
-    autoSavePointTable();
 
     function addDays(dateStr, days) {
       const d = new Date(dateStr);
