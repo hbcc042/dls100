@@ -1,419 +1,414 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Football Match Fixers - Admin Panel</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
-  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Football Match Fixers - Admin Panel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
 
-  <!-- Header -->
-  <header class="bg-white shadow-md relative">
-    <div class="max-w-4xl mx-auto px-4 py-3 relative flex items-center justify-center">
-      <p onclick="window.location.href='admin.html'" class="absolute left-4 text-gray-700 cursor-pointer">
-        <i class="fas fa-arrow-left text-2xl"></i>
-      </p>
-      <h1 class="text-xl font-bold text-gray-800">Fixers List</h1>
-    </div>
-  </header>
+  <!-- Header -->
+  <header class="bg-white shadow-md relative">
+    <div class="max-w-4xl mx-auto px-4 py-3 relative flex items-center justify-center">
+      <p onclick="window.location.href='admin.html'" class="absolute left-4 text-gray-700 cursor-pointer">
+        <i class="fas fa-arrow-left text-2xl"></i>
+      </p>
+      <h1 class="text-xl font-bold text-gray-800">Fixers List</h1>
+    </div>
+  </header>
 
-  <!-- Main -->
-  <main class="max-w-4xl mx-auto p-4 space-y-6">
-    <!-- Fixers Section -->
-    <div class="bg-white shadow rounded p-4">
-      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4">
-        <div class="text-xl font-semibold text-green-700">Football Match Fixers</div>
-        <div class="flex flex-col gap-1">
-          <div class="flex items-center gap-2 flex-wrap">
-            <select id="teamSelector" multiple class="border border-gray-300 rounded p-2 text-sm w-26 h-9 overflow-y-auto" size="8"></select>
-            <label class="text-sm text-gray-600 flex items-center gap-2 pl-1">
-              <input type="checkbox" id="selectAllTeams" class="accent-green-600" />
-              Select All Teams
-            </label>
-            <input type="date" id="fixerDate" class="border border-gray-300 rounded p-2 text-sm h-9" />
-            <select id="groupCount" class="border border-gray-300 rounded p-2 text-sm h-9">
-              <option value="0" disabled selected>Select Group</option>
-              <option value="1">1 Group</option>
-              <option value="2">2 Groups</option>
-              <option value="3">3 Groups</option>
-              <option value="4">4 Groups</option>
-              <option value="5">5 Groups</option>
-              <option value="6">6 Groups</option>
-              <option value="7">7 Groups</option>
-              <option value="8">8 Groups</option>
-            </select>
-            <button id="addFixerBtn" class="bg-green-600 text-white text-sm px-3 py-2 rounded hover:bg-green-700 whitespace-nowrap">
-              <i class="fas fa-plus mr-1"></i> Add Fixers
-            </button>
-            <button id="deleteAllBtn" class="bg-red-600 text-white text-sm px-3 py-2 rounded hover:bg-red-700 whitespace-nowrap">
-              <i class="fas fa-trash mr-1"></i> Delete All Fixers
-            </button>
-          </div>
-        </div>
-      </div>
+  <!-- Main -->
+  <main class="max-w-4xl mx-auto p-4 space-y-6">
+    <!-- Fixers Section -->
+    <div class="bg-white shadow rounded p-4">
+      <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-4">
+        <div class="text-xl font-semibold text-green-700">Football Match Fixers</div>
+        <div class="flex flex-col gap-1">
+          <div class="flex items-center gap-2 flex-wrap">
+            <select id="teamSelector" multiple class="border border-gray-300 rounded p-2 text-sm w-26 h-9 overflow-y-auto" size="8"></select>
+            <label class="text-sm text-gray-600 flex items-center gap-2 pl-1">
+              <input type="checkbox" id="selectAllTeams" class="accent-green-600" />
+              Select All Teams
+            </label>
+            <input type="date" id="fixerDate" class="border border-gray-300 rounded p-2 text-sm h-9" />
+            <select id="groupCount" class="border border-gray-300 rounded p-2 text-sm h-9">
+              <option value="0" disabled selected>Select Group</option>
+              <option value="1">1 Group</option>
+              <option value="2">2 Groups</option>
+              <option value="3">3 Groups</option>
+              <option value="4">4 Groups</option>
+              <option value="5">5 Groups</option>
+              <option value="6">6 Groups</option>
+              <option value="7">7 Groups</option>
+              <option value="8">8 Groups</option>
+            </select>
+            <button id="addFixerBtn" class="bg-green-600 text-white text-sm px-3 py-2 rounded hover:bg-green-700 whitespace-nowrap">
+              <i class="fas fa-plus mr-1"></i> Add Fixers
+            </button>
+            <button id="deleteAllBtn" class="bg-red-600 text-white text-sm px-3 py-2 rounded hover:bg-red-700 whitespace-nowrap">
+              <i class="fas fa-trash mr-1"></i> Delete All Fixers
+            </button>
+          </div>
+        </div>
+      </div>
 
-      <!-- Fixers Display -->
-      <div id="fixersContainer" class="space-y-6 max-h-[600px] overflow-y-auto">
-        <p class="text-gray-500 text-center">Loading fixers...</p>
-      </div>
+      <!-- Fixers Display -->
+      <div id="fixersContainer" class="space-y-6 max-h-[600px] overflow-y-auto">
+        <p class="text-gray-500 text-center">Loading fixers...</p>
+      </div>
 
-      <div id="pointTablesContainer" class="bg-white shadow rounded p-4 max-h-[400px] overflow-y-auto">
-        <h2 class="text-lg font-semibold text-green-700 mb-3">Point Tables</h2>
-        <!-- Group-wise point tables will appear here -->
-      </div>
+      <div id="pointTablesContainer" class="bg-white shadow rounded p-4 max-h-[400px] overflow-y-auto">
+        <h2 class="text-lg font-semibold text-green-700 mb-3">Point Tables</h2>
+        <!-- Group-wise point tables will appear here -->
+      </div>
+    </div>
+  </main>
 
-    </div>
-  </main>
-  <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
-  import {
-    getFirestore,
-    collection,
-    getDocs,
-    addDoc,
-    deleteDoc,
-    updateDoc,
-    doc
-  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import {
+      getFirestore,
+      collection,
+      getDocs,
+      addDoc,
+      deleteDoc,
+      updateDoc,
+      doc
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDooTNeDHoWUU9nLxYxyBIhewydt7Xl_M0",
-    authDomain: "dlstournament-31ac1.firebaseapp.com",
-    projectId: "dlstournament-31ac1",
-    storageBucket: "dlstournament-31ac1.appspot.com",
-    messagingSenderId: "874377019055",
-    appId: "1:874377019055:web:6e38db2ec7f0d541d2de5a",
-  };
+    const firebaseConfig = {
+      apiKey: "AIzaSyDooTNeDHoWUU9nLxYxyBIhewydt7Xl_M0",
+      authDomain: "dlstournament-31ac1.firebaseapp.com",
+      projectId: "dlstournament-31ac1",
+      storageBucket: "dlstournament-31ac1.appspot.com",
+      messagingSenderId: "874377019055",
+      appId: "1:874377019055:web:6e38db2ec7f0d541d2de5a",
+    };
 
-  const app = initializeApp(firebaseConfig);
-  const auth = getAuth(app);
-  const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
 
-  let teamList = [];
+    let teamList = [];
 
-  onAuthStateChanged(auth, (user) => {
-    if (!user) window.location.href = "login.html";
-    else {
-      loadTeams();
-      loadFixers();
-      loadPointTables();
-    }
-  });
+    onAuthStateChanged(auth, (user) => {
+      if (!user) window.location.href = "login.html";
+      else {
+        loadTeams();
+        loadFixers();
+        loadPointTables();
+      }
+    });
 
-  async function loadTeams() {
-    const snapshot = await getDocs(collection(db, "playersform"));
-    const teams = new Set();
-    snapshot.forEach(doc => {
-      const data = doc.data();
-      if (data.team) teams.add(data.team);
-    });
-    teamList = Array.from(teams);
-    document.getElementById("teamSelector").innerHTML = teamList.map(t => `<option value="${t}">${t}</option>`).join("");
-  }
+    async function loadTeams() {
+      const snapshot = await getDocs(collection(db, "playersform"));
+      const teams = new Set();
+      snapshot.forEach(doc => {
+        const data = doc.data();
+        if (data.team) teams.add(data.team);
+      });
+      teamList = Array.from(teams);
+      document.getElementById("teamSelector").innerHTML = teamList.map(t => `<option value="${t}">${t}</option>`).join("");
+    }
 
-  function addDays(dateStr, days) {
-    const d = new Date(dateStr);
-    d.setDate(d.getDate() + days);
-    return d.toISOString().split("T")[0];
-  }
+    async function loadFixers() {
+      const snapshot = await getDocs(collection(db, "fixers"));
+      const fixersContainer = document.getElementById("fixersContainer");
 
-  async function loadFixers() {
-    const snapshot = await getDocs(collection(db, "fixers"));
-    const fixersContainer = document.getElementById("fixersContainer");
+      if (snapshot.empty) {
+        fixersContainer.innerHTML = `<p class="text-gray-500 text-center">No fixers found.</p>`;
+        return;
+      }
 
-    if (snapshot.empty) {
-      fixersContainer.innerHTML = `<p class="text-gray-500 text-center">No fixers found.</p>`;
-      return;
-    }
+      const fixers = [];
+      let groupIndex = 0;
 
-    const fixers = [];
-    let groupIndex = 0;
+      for (const docSnap of snapshot.docs) {
+        const data = docSnap.data();
+        const docRef = doc(db, "fixers", docSnap.id);
 
-    for (const docSnap of snapshot.docs) {
-      const data = docSnap.data();
-      const docRef = doc(db, "fixers", docSnap.id);
+        const g1 = data.team1Goal;
+        const g2 = data.team2Goal;
+        let status = (typeof g1 === 'number' && typeof g2 === 'number') ? "Finished" : "Pending";
+        let winner = "None";
 
-      const g1 = data.team1Goal;
-      const g2 = data.team2Goal;
-      let status = (typeof g1 === 'number' && typeof g2 === 'number') ? "Finished" : "Pending";
+        if (status === "Finished") {
+          if (g1 > g2) winner = data.team1;
+          else if (g2 > g1) winner = data.team2;
+          else winner = "Draw";
 
-      if (data.status !== status) {
-        await updateDoc(docRef, { status });
-        data.status = status;
-      }
+          // Update winner in Firestore if not already updated
+          if (data.winner !== winner) {
+            await updateDoc(docRef, { winner });
+          }
+        }
 
-      if (status === "Finished" && !data.pointsUpdated) {
-        const team1Points = g1 > g2 ? 3 : (g1 === g2 ? 1 : 0);
-        const team2Points = g2 > g1 ? 3 : (g1 === g2 ? 1 : 0);
+        if (data.status !== status) {
+          await updateDoc(docRef, { status });
+        }
 
-        await updatePointsInFirestore(data.team1, team1Points, g1, g2);
-        await updatePointsInFirestore(data.team2, team2Points, g2, g1);
+        fixers.push(data);
+      }
 
-        await updateDoc(docRef, { pointsUpdated: true });
-      }
+      const fixersByDate = {};
+      fixers.forEach(fix => {
+        const key = fix.date;
+        if (!fixersByDate[key]) fixersByDate[key] = [];
+        fixersByDate[key].push(fix);
+      });
 
-      fixers.push(data);
-    }
+      const sortedDates = Object.keys(fixersByDate).sort();
+      const baseDate = sortedDates.length > 0 ? sortedDates[0] : null;
 
-    const fixersByDate = {};
-    fixers.forEach(fix => {
-      const key = fix.date;
-      if (!fixersByDate[key]) fixersByDate[key] = [];
-      fixersByDate[key].push(fix);
-    });
+      let html = "";
+      groupIndex = 0;
 
-    const sortedDates = Object.keys(fixersByDate).sort();
-    const baseDate = sortedDates.length > 0 ? sortedDates[0] : null;
+      sortedDates.forEach(date => {
+        const groupName = `Group ${String.fromCharCode(65 + groupIndex)}`;
+        html += `<div class="bg-gray-100 px-3 py-2 rounded font-semibold text-gray-700 mb-2">${groupName}</div>`;
+        const matches = fixersByDate[date].sort((a, b) => a.team1.localeCompare(b.team1));
 
-    let html = "";
-    groupIndex = 0;
+        matches.forEach((match, idx) => {
+          let displayDate = baseDate ? addDays(baseDate, idx) : match.date;
+          let winner = "None";
+          if (typeof match.team1Goal === "number" && typeof match.team2Goal === "number") {
+            if (match.team1Goal > match.team2Goal) winner = match.team1;
+            else if (match.team2Goal > match.team1Goal) winner = match.team2;
+            else winner = "Draw";
+          }
 
-    sortedDates.forEach(date => {
-      const groupName = `Group ${String.fromCharCode(65 + groupIndex)}`;
-      html += `<div class="bg-gray-100 px-3 py-2 rounded font-semibold text-gray-700 mb-2">${groupName}</div>`;
-      const matches = fixersByDate[date].sort((a, b) => a.team1.localeCompare(b.team1));
+          html += `
+            <div class="border p-2 rounded shadow-sm text-xs space-y-1 bg-white mb-1">
+              <div class="text-center text-[13px] text-gray-500 font-semibold">${displayDate}</div>
+              <div class="flex justify-between items-center px-2">
+                <div class="text-sm font-semibold text-gray-600">${match.team1} <span class="text-black">(${match.team1Goal ?? "-"})</span></div>
+                <div class="text-base font-bold text-red-500">VS</div>
+                <div class="text-sm font-semibold text-gray-600">${match.team2} <span class="text-black">(${match.team2Goal ?? "-"})</span></div>
+              </div>
+              <div class="text-center text-green-600 text-xs font-medium">Winner: ${winner}</div>
+              <div class="text-center text-blue-600 text-xs font-medium">Status: ${match.status}</div>
+            </div>`;
+        });
 
-      matches.forEach((match, idx) => {
-        let displayDate = baseDate ? addDays(baseDate, idx) : match.date;
-        let winner = "None";
-        if (typeof match.team1Goal === "number" && typeof match.team2Goal === "number") {
-          if (match.team1Goal > match.team2Goal) winner = match.team1;
-          else if (match.team2Goal > match.team1Goal) winner = match.team2;
-          else winner = "Draw";
-        }
+        groupIndex++;
+      });
 
-        html += `
-          <div class="border p-2 rounded shadow-sm text-xs space-y-1 bg-white mb-1">
-              <div class="text-center text-[13px] text-gray-500 font-semibold">${displayDate}</div>
-              <div class="flex justify-between items-center px-2">
-                <div class="text-sm font-semibold text-gray-600">${match.team1} <span class="text-black">(${match.team1Goal ?? "-"})</span></div>
-                <div class="text-base font-bold text-red-500">VS</div>
-                <div class="text-sm font-semibold text-gray-600">${match.team2} <span class="text-black">(${match.team2Goal ?? "-"})</span></div>
-              </div>
-              <div class="text-center text-green-600 text-xs font-medium">Winner: ${winner}</div>
-              <div class="text-center text-blue-600 text-xs font-medium">Status: ${match.status}</div>
-          </div>`;
-      });
+      fixersContainer.innerHTML = html;
+    }
 
-      groupIndex++;
-    });
+    async function loadPointTables() {
+      const snapshot = await getDocs(collection(db, "pointTables"));
+      const pointTablesContainer = document.getElementById("pointTablesContainer");
 
-    fixersContainer.innerHTML = html;
-  }
+      if (snapshot.empty) {
+        pointTablesContainer.innerHTML = `<p class="text-gray-500 text-center">No point tables to show.</p>`;
+        return;
+      }
 
-  async function loadPointTables() {
-    const snapshot = await getDocs(collection(db, "pointTables"));
-    const pointTablesContainer = document.getElementById("pointTablesContainer");
+      const pointTables = [];
+      snapshot.forEach(doc => pointTables.push(doc.data()));
 
-    if (snapshot.empty) {
-      pointTablesContainer.innerHTML = `<p class="text-gray-500 text-center">No point tables to show.</p>`;
-      return;
-    }
+      let allPointsHTML = "";
+      pointTables.sort((a, b) => {
+        const groupA = a.groupName || '';
+        const groupB = b.groupName || '';
+        return groupA.localeCompare(groupB);
+      });
 
-    const pointTables = [];
-    snapshot.forEach(doc => pointTables.push(doc.data()));
+      if (pointTables.length === 0) {
+        allPointsHTML = `<p class="text-gray-500 text-center">No point tables to show.</p>`;
+      } else {
+        allPointsHTML = pointTables.map((pointTable, index) => {
+          const groupNameFromFirestore = pointTable.groupName || `Group ${String.fromCharCode(65 + index)}`;
 
-    let allPointsHTML = "";
-    pointTables.sort((a, b) => {
-      const groupA = a.groupName || '';
-      const groupB = b.groupName || '';
-      return groupA.localeCompare(groupB);
-    });
+          pointTable.teams.sort((a, b) => {
+            if (b.points === a.points) {
+              return b.goals - a.goals;
+            }
+            return b.points - a.points;
+          });
 
-    if (pointTables.length === 0) {
-      allPointsHTML = `<p class="text-gray-500 text-center">No point tables to show.</p>`;
-    } else {
-      allPointsHTML = pointTables.map((pointTable, index) => {
-        const groupNameFromFirestore = pointTable.groupName || `Group ${String.fromCharCode(65 + index)}`;
+          return `
+            <div class="mb-4">
+              <div class="font-semibold mb-1 text-blue-700">Point Table - ${groupNameFromFirestore}</div>
+              <table class="text-sm w-full table-auto border border-gray-200">
+                <thead>
+                  <tr class="bg-gray-200">
+                    <th class="px-2 py-1 border">#</th>
+                    <th class="px-2 py-1 border">Team</th>
+                    <th class="px-2 py-1 border text-center">Played</th>
+                    <th class="px-2 py-1 border text-center">Win</th>
+                    <th class="px-2 py-1 border text-center">Loss</th>
+                    <th class="px-2 py-1 border text-center">Draw</th>
+                    <th class="px-2 py-1 border text-center">Goals</th>
+                    <th class="px-2 py-1 border text-center">Points</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${pointTable.teams.map((team, i) => `
+                    <tr>
+                      <td class="px-2 py-1 border text-center">${i + 1}</td>
+                      <td class="px-2 py-1 border">${team.team}</td>
+                      <td class="px-2 py-1 border text-center font-semibold">${team.played}</td>
+                      <td class="px-2 py-1 border text-center">${team.win}</td>
+                      <td class="px-2 py-1 border text-center">${team.loss}</td>
+                      <td class="px-2 py-1 border text-center">${team.draw}</td>
+                      <td class="px-2 py-1 border text-center font-semibold">${team.goals}</td>
+                      <td class="px-2 py-1 border text-center font-bold">${team.points}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `;
+        }).join('');
+      }
 
-        pointTable.teams.sort((a, b) => {
-          if (b.points === a.points) {
-            return b.goals - a.goals;
-          }
-          return b.points - a.points;
-        });
+      pointTablesContainer.innerHTML = allPointsHTML;
+    }
 
-        return `
-          <div class="mb-4">
-              <div class="font-semibold mb-1 text-blue-700">Point Table - ${groupNameFromFirestore}</div>
-              <table class="text-sm w-full table-auto border border-gray-200">
-                <thead>
-                  <tr class="bg-gray-200">
-                    <th class="px-2 py-1 border">#</th>
-                    <th class="px-2 py-1 border">Team</th>
-                    <th class="px-2 py-1 border text-center">Played</th>
-                    <th class="px-2 py-1 border text-center">Win</th>
-                    <th class="px-2 py-1 border text-center">Loss</th>
-                    <th class="px-2 py-1 border text-center">Draw</th>
-                    <th class="px-2 py-1 border text-center">Goals</th>
-                    <th class="px-2 py-1 border text-center">Points</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${pointTable.teams.map((team, i) => `
-                    <tr>
-                      <td class="px-2 py-1 border text-center">${i + 1}</td>
-                      <td class="px-2 py-1 border">${team.team}</td>
-                      <td class="px-2 py-1 border text-center font-semibold">${team.played}</td>
-                      <td class="px-2 py-1 border text-center">${team.win}</td>
-                      <td class="px-2 py-1 border text-center">${team.loss}</td>
-                      <td class="px-2 py-1 border text-center">${team.draw}</td>
-                      <td class="px-2 py-1 border text-center font-semibold">${team.goals}</td>
-                      <td class="px-2 py-1 border text-center font-bold">${team.points}</td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-          </div>
-        `;
-      }).join('');
-    }
+    async function updatePointsInFirestore(team, points, goalsFor, goalsAgainst) {
+      const snapshot = await getDocs(collection(db, "pointTables"));
+      let teamUpdated = false;
 
-    pointTablesContainer.innerHTML = allPointsHTML;
-  }
+      for (const docSnap of snapshot.docs) {
+        const data = docSnap.data();
+        const groupTeams = data.teams;
 
-  async function updatePointsInFirestore(team, points, goalsFor, goalsAgainst) {
-    const snapshot = await getDocs(collection(db, "pointTables"));
-    let teamUpdated = false;
+        for (let i = 0; i < groupTeams.length; i++) {
+          if (groupTeams[i].team === team) {
+            groupTeams[i].points += points;
+            groupTeams[i].played += 1;
+            groupTeams[i].goals += goalsFor;
 
-    for (const docSnap of snapshot.docs) {
-      const data = docSnap.data();
-      const groupTeams = data.teams;
+            if (points === 3) {
+              groupTeams[i].win += 1;
+            } else if (points === 1) {
+              groupTeams[i].draw += 1;
+            } else {
+              groupTeams[i].loss += 1;
+            }
 
-      for (let i = 0; i < groupTeams.length; i++) {
-        if (groupTeams[i].team === team) {
-          groupTeams[i].points += points;
-          groupTeams[i].played += 1;
-          groupTeams[i].goals += goalsFor;
+            await updateDoc(doc(db, "pointTables", docSnap.id), { teams: groupTeams });
+            teamUpdated = true;
+            break;
+          }
+        }
 
-          if (points === 3) {
-            groupTeams[i].win += 1;
-          } else if (points === 1) {
-            groupTeams[i].draw += 1;
-          } else {
-            groupTeams[i].loss += 1;
-          }
+        if (teamUpdated) break;
+      }
 
-          await updateDoc(doc(db, "pointTables", docSnap.id), { teams: groupTeams });
-          teamUpdated = true;
-          break;
-        }
-      }
+      if (!teamUpdated) {
+        console.log(`Team ${team} not found in point table`);
+      }
+    }
 
-      if (teamUpdated) break;
-    }
+    document.getElementById("addFixerBtn").addEventListener("click", async () => {
+      const selectedTeams = Array.from(document.getElementById("teamSelector").selectedOptions).map(opt => opt.value);
+      const baseDate = document.getElementById("fixerDate").value;
+      const groupCount = parseInt(document.getElementById("groupCount").value);
 
-    if (!teamUpdated) {
-      console.log(`Team ${team} not found in point table`);
-    }
-  }
+      if (selectedTeams.length < 2 || !baseDate || isNaN(groupCount)) {
+        Swal.fire({ icon: 'warning', title: 'Please fill out all fields.', position: 'top-end', toast: true, timer: 3000, showConfirmButton: false });
+        return;
+      }
 
-  document.getElementById("addFixerBtn").addEventListener("click", async () => {
-    const selectedTeams = Array.from(document.getElementById("teamSelector").selectedOptions).map(opt => opt.value);
-    const baseDate = document.getElementById("fixerDate").value;
-    const groupCount = parseInt(document.getElementById("groupCount").value);
+      if (selectedTeams.length !== groupCount * 4) {
+        Swal.fire({ icon: 'error', title: `Select ${groupCount * 4} teams.`, position: 'top-end', toast: true, timer: 4000, showConfirmButton: false });
+        return;
+      }
 
-    if (selectedTeams.length < 2 || !baseDate || isNaN(groupCount)) {
-      Swal.fire({ icon: 'warning', title: 'Please fill out all fields.', position: 'top-end', toast: true, timer: 3000, showConfirmButton: false });
-      return;
-    }
+      const start = new Date(baseDate);
+      let added = 0;
 
-    if (selectedTeams.length !== groupCount * 4) {
-      Swal.fire({ icon: 'error', title: `Select ${groupCount * 4} teams.`, position: 'top-end', toast: true, timer: 4000, showConfirmButton: false });
-      return;
-    }
+      for (let g = 0; g < groupCount; g++) {
+        const groupTeams = selectedTeams.slice(g * 4, (g + 1) * 4);
+        const matchDate = new Date(start);
+        matchDate.setDate(start.getDate() + g);
+        const dateStr = matchDate.toISOString().split("T")[0];
+        const groupName = `Group ${String.fromCharCode(65 + g)}`;
 
-    const start = new Date(baseDate);
-    let added = 0;
+        for (let i = 0; i < groupTeams.length; i++) {
+          for (let j = i + 1; j < groupTeams.length; j++) {
+            await addDoc(collection(db, "fixers"), {
+              team1: groupTeams[i],
+              team2: groupTeams[j],
+              date: dateStr,
+              team1Goal: null,
+              team2Goal: null,
+              status: "Pending",
+              winner: "None",
+              groupName: groupName
+            });
+            added++;
+          }
+        }
 
-    for (let g = 0; g < groupCount; g++) {
-      const groupTeams = selectedTeams.slice(g * 4, (g + 1) * 4);
-      const matchDate = new Date(start);
-      matchDate.setDate(start.getDate() + g);
-      const dateStr = matchDate.toISOString().split("T")[0];
-      const groupName = `Group ${String.fromCharCode(65 + g)}`;
+        await savePointTable(groupName, groupTeams.map(team => ({
+          team,
+          played: 0,
+          win: 0,
+          loss: 0,
+          draw: 0,
+          goals: 0,
+          points: 0
+        })));
+      }
 
-      for (let i = 0; i < groupTeams.length; i++) {
-        for (let j = i + 1; j < groupTeams.length; j++) {
-          await addDoc(collection(db, "fixers"), {
-            team1: groupTeams[i],
-            team2: groupTeams[j],
-            date: dateStr,
-            team1Goal: null,
-            team2Goal: null,
-            status: "Pending",
-            groupName: groupName
-          });
-          added++;
-        }
-      }
+      Swal.fire({ icon: 'success', title: `${added} matches added.`, position: 'top-end', toast: true, timer: 3000, showConfirmButton: false });
+      loadFixers();
+    });
 
-      await savePointTable(groupName, groupTeams.map(team => ({
-        team,
-        played: 0,
-        win: 0,
-        loss: 0,
-        draw: 0,
-        goals: 0,
-        points: 0
-      })));
-    }
+    async function savePointTable(groupName, teams) {
+      await addDoc(collection(db, "pointTables"), {
+        groupName,
+        teams: teams.map(t => ({
+          team: t.team,
+          played: t.played,
+          win: t.win,
+          loss: t.loss,
+          draw: t.draw,
+          goals: t.goals,
+          points: t.points
+        })),
+      });
+      console.log("Point table for " + groupName + " saved successfully.");
+    }
 
-    Swal.fire({ icon: 'success', title: `${added} matches added.`, position: 'top-end', toast: true, timer: 3000, showConfirmButton: false });
-    loadFixers();
-  });
+    document.getElementById("selectAllTeams").addEventListener("change", (e) => {
+      const options = document.getElementById("teamSelector").options;
+      for (let option of options) option.selected = e.target.checked;
+    });
 
-  async function savePointTable(groupName, teams) {
-    await addDoc(collection(db, "pointTables"), {
-      groupName,
-      teams: teams.map(t => ({
-        team: t.team,
-        played: t.played,
-        win: t.win,
-        loss: t.loss,
-        draw: t.draw,
-        goals: t.goals,
-        points: t.points
-      })),
-    });
-    console.log("Point table for " + groupName + " saved successfully.");
-  }
+    document.getElementById("deleteAllBtn").addEventListener("click", async () => {
+      const confirm = await Swal.fire({
+        title: 'Are you sure?',
+        text: "All matches will be deleted!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, delete all!',
+      });
 
-  document.getElementById("selectAllTeams").addEventListener("change", (e) => {
-    const options = document.getElementById("teamSelector").options;
-    for (let option of options) option.selected = e.target.checked;
-  });
+      if (!confirm.isConfirmed) return;
 
-  // Updated deleteAllBtn click handler
-  document.getElementById("deleteAllBtn").addEventListener("click", async () => {
-    const confirm = await Swal.fire({
-      title: 'Are you sure?',
-      text: "All matches will be deleted!",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: 'Yes, delete all!',
-    });
+      const snapshotFixers = await getDocs(collection(db, "fixers"));
+      const deletionsFixers = snapshotFixers.docs.map(docSnap => deleteDoc(doc(db, "fixers", docSnap.id)));
+      await Promise.all(deletionsFixers);
 
-    if (!confirm.isConfirmed) return;
+      // Also delete the related point tables
+      const snapshotPointTables = await getDocs(collection(db, "pointTables"));
+      const deletionsPointTables = snapshotPointTables.docs.map(docSnap => deleteDoc(doc(db, "pointTables", docSnap.id)));
+      await Promise.all(deletionsPointTables);
 
-    const snapshotFixers = await getDocs(collection(db, "fixers"));
-    const deletionsFixers = snapshotFixers.docs.map(docSnap => deleteDoc(doc(db, "fixers", docSnap.id)));
-    await Promise.all(deletionsFixers);
-
-    // Also delete the related point tables
-    const snapshotPointTables = await getDocs(collection(db, "pointTables"));
-    const deletionsPointTables = snapshotPointTables.docs.map(docSnap => deleteDoc(doc(db, "pointTables", docSnap.id)));
-    await Promise.all(deletionsPointTables);
-
-    Swal.fire({ icon: 'success', title: 'All fixers and point tables deleted.', position: 'top-end', toast: true, timer: 3000, showConfirmButton: false });
-    loadFixers();
-    loadPointTables();
-  });
-</script>
+      Swal.fire({ icon: 'success', title: 'All fixers and point tables deleted.', position: 'top-end', toast: true, timer: 3000, showConfirmButton: false });
+      loadFixers();
+      loadPointTables();
+    });
+  </script>
 
 </body>
 </html>
