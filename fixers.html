@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Match Fixers</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-black text-white min-h-screen">
+
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-black via-gray-900 to-black w-full max-w-md shadow-md py-2 px-3 mb-3 mx-auto border-b border-gray-700 flex items-center justify-between rounded-b-xl">
+    <div class="flex items-center gap-2">
+      <div class="bg-red-600 bg-opacity-50 border border-red-500 text-red-300 w-9 h-9 flex items-center justify-center font-bold rounded-full shadow">FX</div>
+      <h2 class="text-2xl font-bold bg-gradient-to-r from-red-400 via-yellow-300 to-red-400 bg-clip-text text-transparent">Fixers</h2>
+    </div>
+    <div class="flex items-center gap-1 bg-gradient-to-br from-red-500 via-yellow-700 to-red-500 text-black px-2 py-1 rounded-full shadow-lg border border-yellow-200 h-[29px]">
+      <i class="fa-solid fa-users text-white text-sm"></i>
+    </div>
+  </header>
+
+  <!-- Fixers List -->
+  <main class="max-w-3xl mx-auto px-4 mt-6 mb-20">
+    <div id="fixers-list" class="space-y-6">
+      <p class="text-center text-gray-400">লোড হচ্ছে...</p>
+    </div>
+  </main>
+
+  <!-- Firebase & Logic -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, onSnapshot, query, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDooTNeDHoWUU9nLxYxyBIhewydt7Xl_M0",
+      authDomain: "dlstournament-31ac1.firebaseapp.com",
+      projectId: "dlstournament-31ac1",
+      storageBucket: "dlstournament-31ac1.appspot.com",
+      messagingSenderId: "874377019055",
+      appId: "1:874377019055:web:6e38db2ec7f0d541d2de5a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let teamPhotos = {};
+    let fixersDocs = {};
+
+    async function loadTeamPhotos() {
+      const snap = await getDocs(collection(db, "playersform"));
+      snap.forEach(doc => {
+        const data = doc.data();
+        if (data.team && data.photoUrl) {
+          teamPhotos[data.team.trim().toLowerCase()] = data.photoUrl;
+        }
+      });
+    }
+
+    function addDays(dateStr, days) {
+      const d = new Date(dateStr);
+      d.setDate(d.getDate() + days);
+      return d.toISOString().split("T")[0];
+    }
+
+    function convertBanglaToEnglish(str) {
+      const map = {
+        '০': '0', '১': '1', '২': '2', '৩': '3', '৪': '4',
+        '৫': '5', '৬': '6', '৭': '7', '৮': '8', '৯': '9'
+      };
+      return str.replace(/[০-৯]/g, digit => map[digit]);
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        await loadTeamPhotos();
+        loadFixers();
+      }
+    });
+
+    function loadFixers() {
+      const fixersRef = collection(db, "fixers");
+      onSnapshot(query(fixersRef), (snapshot) => {
+        const fixersContainer = document.getElementById("fixers-list");
+
+        if (snapshot.empty) {
+          fixersContainer.innerHTML = `<p class="text-center text-gray-400">কোনো ফিক্সার নেই।</p>`;
+          return;
+        }
+
+        const fixers = [];
+        fixersDocs = {};
+
+        snapshot.forEach(docSnap => {
+          fixers.push(docSnap.data());
+          const d = docSnap.data();
+          const key = `${d.team1}__${d.team2}__${d.date}`;
+          fixersDocs[key] = docSnap.ref;
+        });
+
+        const fixersByDate = {};
+        fixers.forEach(fix => {
+          const key = fix.date;
+          if (!fixersByDate[key]) fixersByDate[key] = [];
+          fixersByDate[key].push(fix);
+        });
+
+        const sortedDates = Object.keys(fixersByDate).sort();
+        const baseDate = sortedDates[0];
+        let html = "";
+
+        sortedDates.forEach((date, groupIndex) => {
+          const groupName = String.fromCharCode(65 + groupIndex);
+          html += `<div class="text-lg font-semibold text-yellow-400 mb-2">Group ${groupName}</div>`;
+
+          const matches = fixersByDate[date].sort((a, b) => a.team1.localeCompare(b.team1));
+
+          matches.forEach((match, idx) => {
+            const matchDate = addDays(baseDate, idx);
+            const team1Img = teamPhotos[match.team1.trim().toLowerCase()] || "";
+            const team2Img = teamPhotos[match.team2.trim().toLowerCase()] || "";
+
+            const key = `${match.team1}__${match.team2}__${match.date}`;
+            const t1GoalVal = (match.team1Goal ?? "").toString();
+            const t2GoalVal = (match.team2Goal ?? "").toString();
+
+            html += `
+              <div class="border border-gray-700 rounded-lg p-3 text-sm bg-gray-900 shadow space-y-2">
+                <div class="text-center text-gray-400 mb-1 text-md">${matchDate}</div>
+                <div class="flex justify-center items-center gap-3 font-semibold text-white">
+                  <div class="flex flex-col items-center gap-1 flex-1 justify-end">
+                    ${team1Img ? `<img src="${team1Img}" class="w-10 h-10 rounded-full" alt="${match.team1}" />` : ""}
+                    <span>${match.team1}</span>
+                    <input type="text" inputmode="numeric" placeholder="0" id="goal1-${key}" value="${t1GoalVal}" class="mt-1 w-16 text-black rounded px-1 py-0.5 text-center text-sm goal-input" />
+                  </div>
+
+                  <div class="text-yellow-400 font-bold text-2xl select-none">VS</div>
+
+                  <div class="flex flex-col items-center gap-1 flex-1 justify-start">
+                    ${team2Img ? `<img src="${team2Img}" class="w-10 h-10 rounded-full" alt="${match.team2}" />` : ""}
+                    <span>${match.team2}</span>
+                    <input type="text" inputmode="numeric" placeholder="0" id="goal2-${key}" value="${t2GoalVal}" class="mt-1 w-16 text-black rounded px-1 py-0.5 text-center text-sm goal-input" />
+                  </div>
+                </div>
+                <div class="text-center">
+                  <button data-key="${key}" class="update-goal-btn bg-yellow-400 text-black font-semibold px-3 py-1 rounded hover:bg-yellow-300 transition duration-200">Update</button>
+                </div>
+              </div>
+            `;
+          });
+        });
+
+        fixersContainer.innerHTML = html;
+
+        // Convert input to English digits only
+        document.querySelectorAll(".goal-input").forEach(input => {
+          input.addEventListener("input", () => {
+            input.value = convertBanglaToEnglish(input.value.replace(/[^০-৯0-9]/g, ''));
+          });
+        });
+
+        document.querySelectorAll(".update-goal-btn").forEach(btn => {
+          btn.addEventListener("click", async (e) => {
+            const key = e.currentTarget.getAttribute("data-key");
+            const goal1Input = document.getElementById(`goal1-${key}`);
+            const goal2Input = document.getElementById(`goal2-${key}`);
+
+            let goal1 = convertBanglaToEnglish(goal1Input.value);
+            let goal2 = convertBanglaToEnglish(goal2Input.value);
+
+            goal1 = goal1 === "" ? null : Number(goal1);
+            goal2 = goal2 === "" ? null : Number(goal2);
+
+            if ((goal1 !== null && (isNaN(goal1) || goal1 < 0)) || (goal2 !== null && (isNaN(goal2) || goal2 < 0))) {
+              Swal.fire({ icon: "error", title: "Invalid goal value!", timer: 2000, toast: true, position: "top-end", showConfirmButton: false });
+              return;
+            }
+
+            const docRef = fixersDocs[key];
+            if (!docRef) {
+              Swal.fire({ icon: "error", title: "Document not found!", timer: 2000, toast: true, position: "top-end", showConfirmButton: false });
+              return;
+            }
+
+            await updateDoc(docRef, {
+              team1Goal: goal1,
+              team2Goal: goal2,
+            });
+
+            Swal.fire({ icon: "success", title: "Goal updated!", timer: 2000, toast: true, position: "top-end", showConfirmButton: false });
+          });
+        });
+      });
+    }
+  </script>
+</body>
+</html>

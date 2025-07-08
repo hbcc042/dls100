@@ -1,0 +1,232 @@
+<!DOCTYPE html><html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Profile</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@latest/dist/tailwind.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    .swal2-timer-progress-bar { background: #facc15 !important; }
+    .glow-yellow { box-shadow: 0 0 8px rgba(234, 179, 8, 0.6); }
+    .header-glow { box-shadow: 0 0 10px rgba(255, 255, 255, 0.1), 0 0 15px rgba(251, 191, 36, 0.3); }
+    .loader {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      border: 6px solid rgba(255, 255, 255, 0.15);
+      border-top-color: #facc15;
+      animation: spin 2s ease-in-out infinite;
+      box-shadow: 0 0 8px #facc15, inset 0 0 8px #facc15;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body class="bg-black text-white">
+
+  <!-- Loading Overlay -->
+  <div id="loadingOverlay" class="fixed inset-0 bg-black flex items-center justify-center z-50">
+    <div class="text-center">
+      <div class="loader mx-auto mb-4"></div>
+      <h1 class="text-2xl font-bold animate-pulse bg-gradient-to-r from-yellow-400 via-green-300 to-yellow-400 bg-clip-text text-transparent" style="font-family: 'Audiowide', cursive;">Khelo Dls</h1>
+      <p class="text-gray-400 text-xs">Loading...</p>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-black via-gray-900 to-black w-full max-w-md shadow-md py-2 px-3 mb-3 mx-auto border-b border-gray-700 flex items-center justify-between header-glow rounded-b-xl">
+    <div class="flex items-center gap-2">
+      <div class="bg-yellow-600 bg-opacity-50 border border-yellow-500 text-yellow-300 w-9 h-9 flex items-center justify-center font-bold rounded-full shadow" style="font-family: 'Audiowide', cursive;">KD</div>
+      <h2 class="text-2xl font-bold bg-gradient-to-r from-yellow-400 via-green-300 to-yellow-400 bg-clip-text text-transparent" style="font-family: 'Audiowide', cursive;">Khelo Dls</h2>
+    </div>
+    <div class="flex items-center gap-1 bg-gradient-to-br from-yellow-500 via-yellow-700 to-yellow-500 text-black px-1 py-1 rounded-full shadow-lg border border-yellow-200">
+      <div class="w-6 h-6 rounded-full bg-black bg-opacity-20 flex items-center justify-center">
+        <i class="fa-solid fa-bangladeshi-taka-sign text-white text-sm"></i>
+      </div>
+      <p id="mainBalance" style="font-family: 'Audiowide', cursive;" class="text-xl font-bold text-white">0</p>
+      <button class="w-6 h-6 rounded-full bg-white flex items-center justify-center shadow-md">
+        <i class="fa-solid fa-plus text-black text-sm"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="px-3 max-w-md mx-auto w-full space-y-6 pb-24">
+    <!-- Profile Info -->
+    <section class="bg-gray-900 bg-opacity-50 border border-gray-700 rounded-xl p-3 flex items-center gap-4 card-glow">
+      <div class="w-14 h-14 rounded-full bg-yellow-500 bg-opacity-20 flex items-center justify-center border-2 border-yellow-400 shadow-inner">
+        <i class="fa-solid fa-user text-2xl text-yellow-300"></i>
+      </div>
+      <div>
+        <h3 id="username" class="text-lg font-bold text-yellow-400">Username</h3>
+        <p id="email" class="text-sm text-yellow-300">user@example.com</p>
+      </div>
+    </section>
+
+    <!-- Referral -->
+    <section class="bg-gray-900 bg-opacity-50 border border-gray-700 rounded-xl p-1 px-3 space-y-2 text-center">
+      <div>
+        <h4 class="text-yellow-400 font-semibold text-base">Your Refer Link</h4>
+        <div class="mt-2 flex gap-2">
+          <input id="referLink" readonly class="bg-gray-800 border border-yellow-400 w-full text-yellow-300 rounded-lg p-2 text-sm" />
+          <button onclick="copyReferLink()" class="bg-yellow-400 hover:bg-yellow-500 text-black px-3 rounded-lg text-sm">
+            <i class="fa-solid fa-copy"></i>
+          </button>
+        </div>
+      </div>
+      <div>
+        <h4 class="text-yellow-400 font-semibold text-base">Total Refers</h4>
+        <p id="totalRefers" class="text-2xl font-bold text-yellow-300">0</p>
+      </div>
+    </section>
+
+    <!-- Actions -->
+    <section class="bg-gray-900 bg-opacity-50 border border-gray-700 rounded-xl p-4 flex justify-between items-center gap-4">
+      <a href="deposit.html" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-semibold py-2 rounded-lg flex items-center justify-center gap-2 shadow-md">
+        <i class="fa-solid fa-circle-down"></i> Deposit
+      </a>
+      <a href="withdraw.html" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg flex items-center justify-center gap-2 shadow-md">
+        <i class="fa-solid fa-circle-up"></i> Withdraw
+      </a>
+    </section>
+
+    <!-- More Options -->
+    <section class="bg-gray-900 bg-opacity-50 border border-gray-700 rounded-xl p-4 space-y-3">
+      <h4 class="text-yellow-400 text-center font-semibold text-base mb-2">More Options</h4>
+      <a href="support.html" class="flex items-center justify-between bg-gray-800 hover:bg-gray-700 rounded-lg px-4 py-2 text-yellow-300">
+        <span><i class="fa-solid fa-headset mr-2"></i>Support</span>
+        <i class="fa-solid fa-angle-right"></i>
+      </a>
+      <a href="deposit-history.html" class="flex items-center justify-between bg-gray-800 hover:bg-gray-700 rounded-lg px-4 py-2 text-yellow-300">
+        <span><i class="fa-solid fa-wallet mr-2"></i>Deposit History</span>
+        <i class="fa-solid fa-angle-right"></i>
+      </a>
+      <a href="withdraw-history.html" class="flex items-center justify-between bg-gray-800 hover:bg-gray-700 rounded-lg px-4 py-2 text-yellow-300">
+        <span><i class="fa-solid fa-money-bill-transfer mr-2"></i>Withdraw History</span>
+        <i class="fa-solid fa-angle-right"></i>
+      </a>
+      <div class="w-full flex justify-center mt-4">
+        <button onclick="logout()" class="w-1/2 text-center bg-red-600 hover:bg-red-700 rounded-lg px-4 py-2 text-white flex items-center justify-center">
+          <i class="fa-solid fa-right-from-bracket mr-2"></i> Logout
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-700 flex justify-around items-center py-2 rounded-t-2xl shadow-inner text-white h-16 z-10">
+  <a href="dashboard.html" class="nav-item flex flex-col items-center text-xs font-semibold no-underline">
+    <div class="bg-gray-900 bg-opacity-70 w-9 h-9 rounded-full mb-1 flex items-center justify-center border border-gray-500">
+      <i class="fa-solid fa-gamepad text-lg text-gray-300 hover:text-yellow-400"></i>
+    </div>
+    Home
+  </a>
+
+  <a href="result.html" class="nav-item flex flex-col items-center text-xs font-semibold no-underline">
+    <div class="bg-gray-900 bg-opacity-70 w-9 h-9 rounded-full mb-1 flex items-center justify-center border border-gray-500">
+      <i class="fa-solid fa-ranking-star text-lg text-gray-300 hover:text-yellow-400"></i>
+    </div>
+    Result
+  </a>
+
+  <a href="league.html" class="nav-item flex flex-col items-center text-xs font-semibold no-underline">
+    <div class="bg-gray-900 bg-opacity-70 w-9 h-9 rounded-full mb-1 flex items-center justify-center border border-gray-500">
+      <i class="fa-solid fa-trophy text-lg text-gray-300 hover:text-yellow-400"></i>
+    </div>
+    League
+  </a>
+
+  <a href="match-history.html" class="nav-item flex flex-col items-center text-xs font-semibold no-underline">
+    <div class="bg-gray-900 bg-opacity-70 w-9 h-9 rounded-full mb-1 flex items-center justify-center border border-gray-500">
+      <i class="fa-solid fa-clock-rotate-left text-lg text-gray-300 hover:text-yellow-400"></i>
+    </div>
+    History
+  </a>
+
+  <a href="profile.html"class="nav-item flex flex-col items-center text-xs font-semibold no-underline">
+    <div class="bg-gray-900 bg-opacity-70 w-9 h-9 rounded-full mb-1 flex items-center justify-center border border-gray-400">
+      <i class="fa-solid fa-user text-lg text-gray-400 hover:text-yellow-400"></i>
+    </div> 
+    Profile
+  </a>
+  </nav>
+
+  <!-- Firebase Scripts -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDooTNeDHoWUU9nLxYxyBIhewydt7Xl_M0",
+      authDomain: "dlstournament-31ac1.firebaseapp.com",
+      projectId: "dlstournament-31ac1",
+      storageBucket: "dlstournament-31ac1.appspot.com",
+      messagingSenderId: "874377019055",
+      appId: "1:874377019055:web:6e38db2ec7f0d541d2de5a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    function hideLoader() {
+      const loader = document.getElementById('loadingOverlay');
+      if (loader) loader.style.display = 'none';
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) return window.location.href = "login.html";
+
+      document.getElementById("email").textContent = user.email || "No Email";
+      const referralLink = `${window.location.origin}/signup.html?ref=${user.uid}`;
+      document.getElementById("referLink").value = referralLink;
+
+      const userDocRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userDocRef);
+
+      if (userSnap.exists()) {
+        const userData = userSnap.data();
+        document.getElementById("username").textContent = userData.username || "No Name";
+        document.getElementById("mainBalance").textContent = userData.balance ?? 0;
+      }
+
+      // Calculate total referrals
+      const q = query(collection(db, "users"), where("referredBy", "==", user.uid));
+      const querySnapshot = await getDocs(q);
+      document.getElementById("totalRefers").textContent = querySnapshot.size;
+
+      hideLoader();
+    });
+
+    window.logout = async () => {
+      await signOut(auth);
+      window.location.href = "index.html";
+    };
+
+    window.copyReferLink = () => {
+      const input = document.getElementById("referLink");
+      navigator.clipboard.writeText(input.value).then(() => {
+        Swal.fire({
+          toast: true,
+          position: 'top-end',
+          icon: 'success',
+          title: 'Referral link copied!',
+          showConfirmButton: false,
+          timer: 2000,
+          timerProgressBar: true,
+          background: '#1a202c',
+          color: '#fff'
+        });
+      });
+    };
+  </script>
+</body>
+</html>

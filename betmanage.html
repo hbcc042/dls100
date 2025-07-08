@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bet Manager</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <header class="bg-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-center relative">
+      <p onclick="window.location.href='/admin.html'" class="absolute left-4 text-gray-700 cursor-pointer">
+        <i class="fas fa-arrow-left text-2xl"></i>
+      </p>
+      <h1 class="text-xl font-bold text-gray-800">All Matches</h1>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-6">
+    <section>
+      <div id="matchList" class="space-y-4">
+        <p class="text-center text-indigo-500 italic">Loading matches...</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- Bet Modal -->
+  <div id="betModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white w-full max-w-md rounded-lg p-6 space-y-4 relative">
+      <h3 class="text-lg font-bold mb-2">Add/Edit Bet Info</h3>
+      <input type="text" id="popup-betTitle" placeholder="Bet Title" class="w-full border px-4 py-2 rounded" />
+
+      <div class="flex gap-2">
+        <input type="text" id="popup-option1" placeholder="Option 1" class="w-1/2 border px-4 py-2 rounded" />
+        <input type="text" id="popup-odds1" placeholder="Odds 1" class="w-1/2 border px-4 py-2 rounded" />
+      </div>
+
+      <!-- Draw option - initially hidden -->
+      <div id="drawOption" class="flex gap-2 hidden">
+        <input type="text" id="popup-drawOption" placeholder="Draw Option (optional)" class="w-1/2 border px-4 py-2 rounded" />
+        <input type="text" id="popup-drawOdds" placeholder="Draw Odds (optional)" class="w-1/2 border px-4 py-2 rounded" />
+      </div>
+
+      <div class="flex gap-2">
+        <input type="text" id="popup-option2" placeholder="Option 2" class="w-1/2 border px-4 py-2 rounded" />
+        <input type="text" id="popup-odds2" placeholder="Odds 2" class="w-1/2 border px-4 py-2 rounded" />
+      </div>
+
+      <div class="flex justify-between items-center">
+        <button id="addMoreBtn" class="text-indigo-600 hover:underline text-sm">+ Add More</button>
+        <div class="flex gap-2">
+          <button onclick="closeModal()" class="px-4 py-2 rounded bg-gray-300 hover:bg-gray-400">Cancel</button>
+          <button id="saveBetBtn" class="px-4 py-2 rounded bg-indigo-600 text-white hover:bg-indigo-700">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import {
+      getFirestore, collection, doc, deleteDoc, onSnapshot, updateDoc, getDoc
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDooTNeDHoWUU9nLxYxyBIhewydt7Xl_M0",
+      authDomain: "dlstournament-31ac1.firebaseapp.com",
+      projectId: "dlstournament-31ac1",
+      storageBucket: "dlstournament-31ac1.appspot.com",
+      messagingSenderId: "874377019055",
+      appId: "1:874377019055:web:6e38db2ec7f0d541d2de5a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+    const tasksCol = collection(db, "tasks");
+
+    const matchList = document.getElementById("matchList");
+    let currentTaskId = null;
+    let editingBetIndex = null;
+
+    const showToast = (msg) => alert(msg);
+
+    onAuthStateChanged(auth, user => {
+      if (!user) return location.href = "login.html";
+      loadTasks();
+    });
+
+    function loadTasks() {
+      onSnapshot(tasksCol, snapshot => {
+        matchList.innerHTML = snapshot.empty
+          ? `<p class="text-center italic text-gray-500">No matches found.</p>`
+          : "";
+
+        snapshot.forEach(docSnap => {
+          const data = docSnap.data();
+          const div = document.createElement("div");
+          div.className = "bg-white rounded-xl shadow-md p-4";
+
+          let betsHTML = "";
+          if (Array.isArray(data.bets) && data.bets.length > 0) {
+            betsHTML = `<div class="mt-4 border-t pt-3">
+              <h4 class="font-semibold text-indigo-600 mb-2">Bets:</h4>
+              <div class="space-y-3">`;
+
+            data.bets.forEach((bet, idx) => {
+              const inputs = [];
+
+              const option1 = `<input type="text" value="${bet.option1} - ${bet.odds1}" class="border px-3 py-1 rounded bg-white outline-none" readonly/>`;
+              const option2 = `<input type="text" value="${bet.option2} - ${bet.odds2}" class="border px-3 py-1 rounded bg-white outline-none" readonly/>`;
+
+              if (bet.drawOption && bet.drawOdds) {
+                const draw = `<input type="text" value="${bet.drawOption} - ${bet.drawOdds}" class="border px-3 py-1 rounded bg-white outline-none" readonly/>`;
+                inputs.push(option1, draw, option2);
+              } else {
+                inputs.push(option1, option2);
+              }
+
+              const inputWidthClass = inputs.length === 2 ? "w-full" : "w-1/3";
+
+              betsHTML += `
+                <div class="p-3 border rounded bg-gray-50">
+                  <p class="mb-2 font-semibold text-gray-700">${bet.betTitle}</p>
+                  <div class="flex gap-2 mb-2">
+                    ${inputs.map(input => input.replace('class="', `class="${inputWidthClass} `)).join("\n")}
+                  </div>
+                  <button class="text-sm px-3 py-1 bg-yellow-500 text-white rounded mt-2" onclick='editBet("${docSnap.id}", ${idx})'>Edit</button>
+                </div>`;
+            });
+
+            betsHTML += `</div></div>`;
+          }
+
+          div.innerHTML = `
+            <p class="font-bold text-indigo-700">${data.name}</p>
+            <p class="text-sm text-gray-600">${data.description || ""}</p>
+            <div class="my-2 flex items-center justify-center gap-2 text-gray-800 font-semibold">
+              <span>${data.reward}</span>
+              <span class="text-red-600 font-bold">VS</span>
+              <span>${data.view || ""}</span>
+            </div>
+            ${betsHTML}
+            <div class="flex gap-2 mt-4">
+              <button class="bg-blue-600 text-white px-3 py-1 rounded" onclick='openModal("${docSnap.id}")'>Add Bet Info</button>
+              <button class="bg-red-600 text-white px-3 py-1 rounded" onclick='deleteTask("${docSnap.id}")'>Delete</button>
+            </div>
+          `;
+          matchList.appendChild(div);
+        });
+      });
+    }
+
+    window.openModal = (id) => {
+      currentTaskId = id;
+      editingBetIndex = null;
+      resetModalFields();
+      hideDrawOption();
+      document.getElementById("betModal").classList.remove("hidden");
+    };
+
+    window.editBet = async (taskId, betIndex) => {
+      currentTaskId = taskId;
+      editingBetIndex = betIndex;
+      const taskSnap = await getDoc(doc(db, "tasks", taskId));
+      const taskData = taskSnap.data();
+      const bet = taskData.bets[betIndex];
+
+      document.getElementById("popup-betTitle").value = bet.betTitle || "";
+      document.getElementById("popup-option1").value = bet.option1 || "";
+      document.getElementById("popup-odds1").value = bet.odds1 || "";
+      document.getElementById("popup-option2").value = bet.option2 || "";
+      document.getElementById("popup-odds2").value = bet.odds2 || "";
+
+      if (bet.drawOption || bet.drawOdds) {
+        document.getElementById("popup-drawOption").value = bet.drawOption || "";
+        document.getElementById("popup-drawOdds").value = bet.drawOdds || "";
+        showDrawOption();
+      } else {
+        hideDrawOption();
+      }
+
+      document.getElementById("betModal").classList.remove("hidden");
+    };
+
+    window.closeModal = () => {
+      document.getElementById("betModal").classList.add("hidden");
+      resetModalFields();
+      hideDrawOption();
+      editingBetIndex = null;
+    };
+
+    function resetModalFields() {
+      document.getElementById("popup-betTitle").value = "";
+      document.getElementById("popup-option1").value = "";
+      document.getElementById("popup-option2").value = "";
+      document.getElementById("popup-odds1").value = "";
+      document.getElementById("popup-odds2").value = "";
+      document.getElementById("popup-drawOption").value = "";
+      document.getElementById("popup-drawOdds").value = "";
+    }
+
+    function showDrawOption() {
+      document.getElementById("drawOption").classList.remove("hidden");
+      document.getElementById("addMoreBtn").classList.add("hidden");
+    }
+
+    function hideDrawOption() {
+      document.getElementById("drawOption").classList.add("hidden");
+      document.getElementById("addMoreBtn").classList.remove("hidden");
+    }
+
+    document.getElementById("addMoreBtn").addEventListener("click", (e) => {
+      e.preventDefault();
+      showDrawOption();
+    });
+
+    window.deleteTask = async (id) => {
+      try {
+        await deleteDoc(doc(db, "tasks", id));
+        showToast("Deleted");
+      } catch (e) {
+        showToast("Error deleting match");
+        console.error(e);
+      }
+    };
+
+    document.getElementById("saveBetBtn").addEventListener("click", async () => {
+      if (!currentTaskId) return;
+
+      const betData = {
+        betTitle: document.getElementById("popup-betTitle").value.trim(),
+        option1: document.getElementById("popup-option1").value.trim(),
+        option2: document.getElementById("popup-option2").value.trim(),
+        odds1: document.getElementById("popup-odds1").value.trim(),
+        odds2: document.getElementById("popup-odds2").value.trim(),
+        drawOption: document.getElementById("popup-drawOption").value.trim() || null,
+        drawOdds: document.getElementById("popup-drawOdds").value.trim() || null,
+      };
+
+      if (!betData.betTitle || !betData.option1 || !betData.option2) {
+        showToast("Please fill at least Bet Title, Option 1 and Option 2");
+        return;
+      }
+
+      try {
+        const taskRef = doc(db, "tasks", currentTaskId);
+        const taskSnap = await getDoc(taskRef);
+        let existingBets = taskSnap.data().bets || [];
+
+        if (editingBetIndex !== null) {
+          existingBets[editingBetIndex] = betData;
+        } else {
+          existingBets.push(betData);
+        }
+
+        await updateDoc(taskRef, { bets: existingBets });
+        closeModal();
+        showToast("Bet Info Saved");
+      } catch (e) {
+        showToast("Error saving bet info");
+        console.error(e);
+      }
+    });
+  </script>
+</body>
+</html>

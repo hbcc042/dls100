@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Player Registration</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@latest/dist/tailwind.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Audiowide&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-black text-white">
+
+  <!-- Header -->
+  <header class="bg-black w-full max-w-md mx-auto py-3 px-4 border-b border-gray-800 flex justify-between items-center">
+    <div class="flex items-center gap-2">
+      <div class="bg-yellow-600 bg-opacity-30 border border-yellow-400 text-yellow-300 w-9 h-9 flex items-center justify-center font-bold rounded-full">KG</div>
+      <h2 class="text-xl font-bold bg-gradient-to-r from-yellow-400 via-green-300 to-yellow-400 bg-clip-text text-transparent">Khelo Games</h2>
+    </div>
+    <div class="flex items-center gap-4">
+      <i class="fa-solid fa-headset text-xl text-yellow-300"></i>
+      <i class="fa-solid fa-ellipsis-vertical cursor-pointer text-yellow-300"></i>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <main class="w-full max-w-md mt-8 px-4 mx-auto">
+    <div class="bg-gray-900 p-4 rounded-xl shadow-xl border border-gray-700">
+      <h1 class="text-center text-2xl font-semibold text-yellow-400 mb-2">প্লেয়ার নিবন্ধন ফরম</h1>
+
+      <!-- Current Limit Display -->
+      <p id="currentLimitDisplay" class="text-center text-yellow-300 mb-6 font-medium">Loading current limit...</p>
+
+      <form class="space-y-4" id="registration-form">
+        <input type="text" id="full-name" name="full-name" required placeholder="আপনার নাম লিখুন" class="w-full px-4 py-2 rounded-md bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500">
+
+        <input type="text" id="team" name="team" required placeholder="আপনার দলের নাম লিখুন" class="w-full px-4 py-2 rounded-md bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500">
+
+        <input type="number" step="any" id="dls-rating" name="dls-rating" required placeholder="আপনার DLS রেটিং লিখুন" class="w-full px-4 py-2 rounded-md bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500">
+
+        <input type="number" id="age" name="age" required placeholder="আপনার বয়স লিখুন" class="w-full px-4 py-2 rounded-md bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500">
+
+        <input type="number" id="years-played" name="years-played" required placeholder="আপনি কত বছর DLS খেলে এসেছেন" class="w-full px-4 py-2 rounded-md bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500">
+
+        <input type="url" id="photo-url" name="photo-url" required placeholder="আপনার ছবির লিঙ্ক দিন (Photo URL)" class="w-full px-4 py-2 rounded-md bg-gray-800 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-yellow-500">
+
+        <button type="submit" class="w-full bg-yellow-500 hover:bg-yellow-600 text-black font-semibold py-2 px-4 rounded-md transition duration-300">নিবন্ধন করুন</button>
+      </form>
+    </div>
+  </main>
+
+  <!-- Bottom Navigation Bar -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-700 flex justify-around items-center py-2 rounded-t-2xl shadow-inner text-white h-16 z-10">
+    <a href="dashboard.html" class="nav-item flex flex-col items-center text-xs font-semibold no-underline">
+      <div class="bg-gray-900 bg-opacity-70 w-9 h-9 rounded-full mb-1 flex items-center justify-center border border-gray-500">
+        <i class="fa-solid fa-gamepad text-lg text-gray-300 hover:text-yellow-400"></i>
+      </div>
+      Home
+    </a>
+
+    <a href="result.html" class="nav-item flex flex-col items-center text-xs font-semibold no-underline">
+      <div class="bg-gray-900 bg-opacity-70 w-9 h-9 rounded-full mb-1 flex items-center justify-center border border-gray-500">
+        <i class="fa-solid fa-ranking-star text-lg text-gray-300 hover:text-yellow-400"></i>
+      </div>
+      Result
+    </a>
+
+    <a href="league.html" class="nav-item flex flex-col items-center text-xs font-semibold no-underline">
+      <div class="bg-gray-900 bg-opacity-70 w-9 h-9 rounded-full mb-1 flex items-center justify-center border border-gray-500">
+        <i class="fa-solid fa-trophy text-lg text-gray-300 hover:text-yellow-400"></i>
+      </div>
+      League
+    </a>
+
+    <a href="match-history.html" class="nav-item flex flex-col items-center text-xs font-semibold no-underline">
+      <div class="bg-gray-900 bg-opacity-70 w-9 h-9 rounded-full mb-1 flex items-center justify-center border border-gray-500">
+        <i class="fa-solid fa-clock-rotate-left text-lg text-gray-300 hover:text-yellow-400"></i>
+      </div>
+      History
+    </a>
+
+    <a href="profile.html" class="nav-item flex flex-col items-center text-xs font-semibold no-underline">
+      <div class="bg-gray-900 bg-opacity-70 w-9 h-9 rounded-full mb-1 flex items-center justify-center border border-gray-400">
+        <i class="fa-solid fa-user text-lg text-gray-400 hover:text-yellow-400"></i>
+      </div> 
+      Profile
+    </a>
+  </nav>
+
+  <!-- Firebase Scripts -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFirestore, collection, addDoc, doc, getDoc, getDocs, runTransaction } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDooTNeDHoWUU9nLxYxyBIhewydt7Xl_M0",
+      authDomain: "dlstournament-31ac1.firebaseapp.com",
+      projectId: "dlstournament-31ac1",
+      storageBucket: "dlstournament-31ac1.appspot.com",
+      messagingSenderId: "874377019055",
+      appId: "1:874377019055:web:6e38db2ec7f0d541d2de5a"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    let currentUser = null;
+    let currentLimit = null;
+
+    const currentLimitDisplay = document.getElementById('currentLimitDisplay');
+
+    async function loadPlayerLimit() {
+      const limitDocRef = doc(db, "settings", "limits");
+      try {
+        const docSnap = await getDoc(limitDocRef);
+        if (docSnap.exists()) {
+          const data = docSnap.data();
+          currentLimit = data?.maxPlayers ?? null;
+          currentLimitDisplay.textContent = currentLimit !== null ? `বর্তমান নিবন্ধন সীমা: ${currentLimit}` : "বর্তমান প্লেয়ার সীমা: নির্ধারিত নেই";
+        } else {
+          currentLimit = null;
+          currentLimitDisplay.textContent = "বর্তমান নিবন্ধন সীমা: নির্ধারিত নেই";
+        }
+      } catch (error) {
+        console.error("Error fetching player limit:", error);
+        currentLimitDisplay.textContent = "সীমা লোড করতে সমস্যা হয়েছে";
+      }
+    }
+
+    async function countRegisteredPlayers() {
+      try {
+        const playersCol = collection(db, "playersform");
+        const snapshot = await getDocs(playersCol);
+        return snapshot.size;
+      } catch (error) {
+        console.error("Error counting players:", error);
+        return 0;
+      }
+    }
+
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+      } else {
+        currentUser = user;
+        await loadPlayerLimit();
+      }
+    });
+
+    const form = document.getElementById('registration-form');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      if (currentLimit === null) {
+        Swal.fire({
+          icon: 'error',
+          title: 'ত্রুটি',
+          text: 'প্লেয়ার সীমা লোড হয়নি, অনুগ্রহ করে কিছুক্ষণ পর আবার চেষ্টা করুন।',
+          confirmButtonColor: '#EF4444'
+        });
+        return;
+      }
+
+      const registeredCount = await countRegisteredPlayers();
+
+      if (registeredCount >= currentLimit) {
+        Swal.fire({
+          icon: 'warning',
+          title: 'সীমা পূর্ণ',
+          text: `দুঃখিত, প্লেয়ার নিবন্ধনের সর্বোচ্চ সীমা (${currentLimit}) পূর্ণ হয়েছে।`,
+          confirmButtonColor: '#F59E0B'
+        });
+        return;
+      }
+
+      const fullName = form['full-name'].value.trim();
+      const team = form['team'].value.trim();
+      const dlsRating = parseFloat(form['dls-rating'].value);
+      const age = Number(form['age'].value);
+      const yearsPlayed = Number(form['years-played'].value);
+      const photoUrl = form['photo-url'].value.trim();
+
+      try {
+        // Run transaction to add player and decrement limit atomically
+        await runTransaction(db, async (transaction) => {
+          const limitDocRef = doc(db, "settings", "limits");
+          const limitDoc = await transaction.get(limitDocRef);
+
+          if (!limitDoc.exists()) {
+            throw "Limit document does not exist!";
+          }
+
+          const limitData = limitDoc.data();
+          const maxPlayers = limitData.maxPlayers ?? 0;
+
+          if (maxPlayers <= 0) {
+            throw "Player limit exceeded!";
+          }
+
+          // Add new player doc
+          const playersCol = collection(db, "playersform");
+          const newPlayerRef = doc(playersCol); // create new doc ref
+          transaction.set(newPlayerRef, {
+            fullName,
+            team,
+            dlsRating,
+            age,
+            yearsPlayed,
+            photoUrl,
+            uid: currentUser?.uid || null,
+            createdAt: new Date()
+          });
+
+          // Decrement maxPlayers by 1
+          transaction.update(limitDocRef, {
+            maxPlayers: maxPlayers - 1
+          });
+
+          // Update local currentLimit to reflect new value
+          currentLimit = maxPlayers - 1;
+          currentLimitDisplay.textContent = `বর্তমান প্লেয়ার সীমা: ${currentLimit}`;
+        });
+
+        Swal.fire({
+          icon: 'success',
+          title: 'সফল',
+          text: 'আপনার নিবন্ধন সম্পন্ন হয়েছে!',
+          confirmButtonColor: '#F59E0B'
+        });
+        form.reset();
+      } catch (error) {
+        let msg = "";
+        if (typeof error === "string") {
+          msg = error;
+        } else if (error instanceof Error) {
+          msg = error.message;
+        } else {
+          msg = "নিবন্ধন করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।";
+        }
+
+        Swal.fire({
+          icon: 'error',
+          title: 'ত্রুটি',
+          text: msg,
+          confirmButtonColor: '#EF4444'
+        });
+        console.error("Transaction error:", error);
+      }
+    });
+  </script>
+
+</body>
+</html>

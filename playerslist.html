@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Players List - Admin Panel</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@latest/dist/tailwind.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+
+  <!-- Header -->
+  <header class="bg-white shadow-md relative">
+    <div class="max-w-7xl mx-auto px-4 py-3 relative flex items-center justify-center">
+      <p onclick="window.location.href='admin.html'" class="absolute left-4 text-gray-700 cursor-pointer">
+        <i class="fas fa-arrow-left text-2xl"></i>
+      </p>
+      <h1 class="text-xl font-bold text-gray-800">Players List</h1>
+    </div>
+  </header>
+
+  <!-- Main -->
+  <main class="p-4 md:p-6 space-y-6 overflow-auto flex-grow">
+
+    <!-- Players List Section -->
+    <div class="bg-white shadow rounded p-4">
+      <div class="text-xl font-semibold text-blue-700 mb-4">Players List</div>
+      <div class="overflow-x-auto max-h-[600px]">
+        <table class="w-full text-xs border border-gray-300 rounded overflow-hidden min-w-[600px]">
+          <thead class="bg-gray-100 sticky top-0 z-10">
+            <tr>
+              <th class="p-2 border">Full Name</th>
+              <th class="p-2 border">Team</th>
+              <th class="p-2 border">DLS Rating</th>
+              <th class="p-2 border">Age</th>
+              <th class="p-2 border">Years Played</th>
+            </tr>
+          </thead>
+          <tbody id="playersTableBody">
+            <tr><td colspan="5" class="p-3 text-center text-gray-500">Loading players...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Firebase + Logic -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDooTNeDHoWUU9nLxYxyBIhewydt7Xl_M0",
+      authDomain: "dlstournament-31ac1.firebaseapp.com",
+      projectId: "dlstournament-31ac1",
+      storageBucket: "dlstournament-31ac1.appspot.com",
+      messagingSenderId: "874377019055",
+      appId: "1:874377019055:web:6e38db2ec7f0d541d2de5a",
+      measurementId: "G-0DGFJEV6GL"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    onAuthStateChanged(auth, user => {
+      if (!user) {
+        window.location.href = "login.html";
+      } else {
+        loadPlayers();
+      }
+    });
+
+    async function loadPlayers() {
+      try {
+        const playersSnapshot = await getDocs(collection(db, "playersform"));
+        const playersTableBody = document.getElementById("playersTableBody");
+
+        if (playersSnapshot.empty) {
+          playersTableBody.innerHTML = `<tr><td colspan="5" class="text-center p-3">No players found.</td></tr>`;
+          return;
+        }
+
+        let html = "";
+        playersSnapshot.forEach(doc => {
+          const p = doc.data();
+          html += `
+            <tr class="border-t hover:bg-gray-50">
+              <td class="p-2 border">${p.fullName || "N/A"}</td>
+              <td class="p-2 border">${p.team || "N/A"}</td>
+              <td class="p-2 border">${p.dlsRating ?? "N/A"}</td>
+              <td class="p-2 border">${p.age ?? "N/A"}</td>
+              <td class="p-2 border">${p.yearsPlayed ?? "N/A"}</td>
+            </tr>`;
+        });
+
+        playersTableBody.innerHTML = html;
+
+      } catch (e) {
+        console.error("Error loading players:", e);
+        document.getElementById("playersTableBody").innerHTML = `<tr><td colspan="5" class="text-center text-red-600">${e.message}</td></tr>`;
+      }
+    }
+  </script>
+
+</body>
+</html>
