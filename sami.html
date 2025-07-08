@@ -242,23 +242,14 @@
         return;
       }
 
-      const snapshot = await getDocs(collection(db, "pointTables"));
       let added = 0;
       let topTeams = [];
 
-      snapshot.forEach((docSnap) => {
-        const pointTable = docSnap.data();
-
-        pointTable.teams.forEach((team) => {
-          topTeams.push({ name: team.team, points: team.points, goals: team.goals || 0 });
-        });
-      });
-
-      topTeams = topTeams.sort((a, b) => {
-        if (b.points === a.points) {
-          return b.goals - a.goals;
-        }
-        return b.points - a.points;
+      // Collect teams shown in topteamsContainer
+      const teamElements = document.querySelectorAll("#topteamsContainer .space-y-2 .flex");
+      teamElements.forEach((element) => {
+        const teamName = element.querySelector('div').innerText.split('.')[1].trim();
+        topTeams.push({ name: teamName });
       });
 
       if (selectedStage === "knockout") {
