@@ -52,6 +52,11 @@
       <p class="text-gray-500 text-center">Loading knockouts...</p>
     </div>
 
+    <!-- All Point Table Display -->
+    <div id="allpointtablesContainer" class="space-y-6 max-h-[600px] overflow-y-auto">
+      <p class="text-gray-500 text-center">Loading all points table...</p>
+    </div>
+
     <!-- Top Teams Section -->
     <div class="bg-white shadow rounded p-4 mt-6">
       <div class="text-xl font-semibold text-blue-700 mb-4">Top Teams By Group</div>
@@ -92,6 +97,7 @@
       else {
         loadKnockouts();
         loadTopTeams(); // Load top teams only (allTeams removed)
+        loadAllPointTables(); // Load all point tables
       }
     });
 
@@ -225,6 +231,39 @@
       });
 
       document.getElementById("topteamsContainer").innerHTML = topTeamsHtml;
+    }
+
+    async function loadAllPointTables() {
+      const snapshot = await getDocs(collection(db, "allpointTables"));
+      const allPointTablesContainer = document.getElementById("allpointtablesContainer");
+
+      if (snapshot.empty) {
+        allPointTablesContainer.innerHTML = `<p class="text-gray-500 text-center">No point tables found.</p>`;
+        return;
+      }
+
+      let pointTablesHtml = "";
+
+      snapshot.forEach(doc => {
+        const pointTable = doc.data();
+
+        pointTablesHtml += `
+          <div class="border p-4 rounded-lg shadow-md bg-white mb-4">
+            <div class="text-lg font-semibold text-gray-700">${pointTable.team}</div>
+            <div class="text-sm text-gray-500">Serial: ${pointTable.serial}</div>
+            <div class="flex justify-between text-sm text-gray-700">
+              <div>Played: ${pointTable.played}</div>
+              <div>Win: ${pointTable.win}</div>
+              <div>Loss: ${pointTable.loss}</div>
+              <div>Draw: ${pointTable.draw}</div>
+              <div>Goals: ${pointTable.goal}</div>
+              <div>Points: ${pointTable.points}</div>
+            </div>
+          </div>
+        `;
+      });
+
+      allPointTablesContainer.innerHTML = pointTablesHtml;
     }
 
     function addDays(dateStr, days) {
