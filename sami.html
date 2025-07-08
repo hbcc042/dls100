@@ -107,7 +107,7 @@
           return;
         }
 
-        let html = "";
+        let html = "<h2 class='text-2xl font-semibold text-center text-gray-800 mb-4'>Knockout Matches</h2>";  // Adding the Knockout Matches header
         snapshot.forEach(docSnap => {
           const data = docSnap.data();
           const docRef = doc(db, "knockouts", docSnap.id);
