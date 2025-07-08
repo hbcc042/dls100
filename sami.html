@@ -96,8 +96,8 @@
       if (!user) window.location.href = "login.html";
       else {
         loadKnockouts();
-        loadTopTeams(); 
-        loadAllPointTables();
+        loadTopTeams(); // Load top teams only (allTeams removed)
+        loadAllPointTables(); // Load all point tables
       }
     });
 
@@ -238,7 +238,7 @@
       const allPointTablesContainer = document.getElementById("allpointtablesContainer");
 
       if (snapshot.empty) {
-        allPointTablesContainer.innerHTML = `<p class="text-gray-500 text-center">No point tables found.</p>`;
+        allPointTablesContainer.innerHTML = `<p class="text-gray-500 text-center">Loading all point tables...</p>`;
         return;
       }
 
@@ -246,12 +246,11 @@
         <table class="min-w-full border-collapse table-auto">
           <thead>
             <tr class="bg-gray-200">
-              <th class="px-4 py-2 border">Serial</th>
               <th class="px-4 py-2 border">Team</th>
               <th class="px-4 py-2 border">Played</th>
               <th class="px-4 py-2 border">Win</th>
-              <th class="px-4 py-2 border">Loss</th>
               <th class="px-4 py-2 border">Draw</th>
+              <th class="px-4 py-2 border">Loss</th>
               <th class="px-4 py-2 border">Goals</th>
               <th class="px-4 py-2 border">Points</th>
             </tr>
@@ -261,17 +260,17 @@
 
       snapshot.forEach(doc => {
         const pointTable = doc.data();
+        const points = pointTable.win * 3 + pointTable.draw;
 
         pointTablesHtml += `
           <tr class="text-center">
-            <td class="px-4 py-2 border">${pointTable.serial}</td>
             <td class="px-4 py-2 border">${pointTable.team}</td>
             <td class="px-4 py-2 border">${pointTable.played}</td>
             <td class="px-4 py-2 border">${pointTable.win}</td>
-            <td class="px-4 py-2 border">${pointTable.loss}</td>
             <td class="px-4 py-2 border">${pointTable.draw}</td>
+            <td class="px-4 py-2 border">${pointTable.loss}</td>
             <td class="px-4 py-2 border">${pointTable.goal}</td>
-            <td class="px-4 py-2 border">${pointTable.points}</td>
+            <td class="px-4 py-2 border">${points}</td>
           </tr>
         `;
       });
